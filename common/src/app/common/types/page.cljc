@@ -7,6 +7,7 @@
 (ns app.common.types.page
   (:require
    [app.common.data :as d]
+   [app.common.file.features :as ffeat]
    [app.common.spec :as us]
    [app.common.types.shape :as cts]
    [app.common.uuid :as uuid]
@@ -109,9 +110,11 @@
 
 (defn make-empty-page
   [id name]
-  (assoc empty-page-data
-         :id id
-         :name name))
+  (let [wrap-fn ffeat/*wrap-objects-fn*]
+    (-> empty-page-data
+        (assoc :id id)
+        (assoc :name name)
+        (update :objects wrap-fn))))
 
 ;; --- Helpers for flow
 

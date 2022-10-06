@@ -7,6 +7,7 @@
 (ns app.main.data.workspace.persistence
   (:require
    [app.common.data :as d]
+   [app.common.data.macros :as dm]
    [app.common.logging :as log]
    [app.common.pages :as cp]
    [app.common.pages.changes-spec :as pcs]
@@ -136,14 +137,16 @@
   (ptk/reify ::persist-changes
     ptk/WatchEvent
     (watch [_ state _]
-      (let [components-v2 (features/active-feature? state :components-v2)
-            sid           (:session-id state)
-            file          (get state :workspace-file)
-            params        {:id (:id file)
-                           :revn (:revn file)
-                           :session-id sid
-                           :changes-with-metadata (into [] changes)
-                           :components-v2 components-v2}]
+      (let [features (cond-> #{}
+                       (features/active-feature? state :components-v2)
+                       (conj "components/v2"))
+            sid      (:session-id state)
+            file     (get state :workspace-file)
+            params   {:id (:id file)
+                      :revn (:revn file)
+                      :session-id sid
+                      :changes-with-metadata (into [] changes)
+                      :features features}]
 
         (when (= file-id (:id params))
           (->> (rp/mutation :update-file params)
@@ -179,15 +182,17 @@
   (ptk/reify ::persist-synchronous-changes
     ptk/WatchEvent
     (watch [_ state _]
-      (let [components-v2 (features/active-feature? state :components-v2)
-            sid     (:session-id state)
-            file    (get-in state [:workspace-libraries file-id])
+      (let [features (cond-> #{}
+                       (features/active-feature? state :components-v2)
+                       (conj "components/v2"))
+            sid      (:session-id state)
+            file     (dm/get-in state [:workspace-libraries file-id])
 
             params  {:id (:id file)
                      :revn (:revn file)
                      :session-id sid
                      :changes changes
-                     :components-v2 components-v2}]
+                     :features features}]
 
         (when (:id params)
           (->> (rp/mutation :update-file params)
@@ -219,10 +224,14 @@
   (ptk/reify ::changes-persisted
     ptk/UpdateEvent
     (update [_ state]
+      ;; NOTE: we don't set the file features context here because
+      ;; there are no useful context for code that need to be executed
+      ;; on the frontend side
       (if (= file-id (:current-file-id state))
         (-> state
             (update-in [:workspace-file :revn] max revn)
             (update :workspace-data cp/process-changes changes))
+
         (-> state
             (update-in [:workspace-libraries file-id :revn] max revn)
             (update-in [:workspace-libraries file-id :data]
@@ -268,8 +277,11 @@
     ptk/WatchEvent
     (watch [_ state _]
       (let [share-id (-> state :viewer-local :share-id)
-            components-v2 (features/active-feature? state :components-v2)]
-        (->> (rx/zip (rp/query! :file-raw {:id file-id :components-v2 components-v2})
+            features (cond-> #{}
+                       (features/active-feature? state :components-v2)
+                       (conj "components/v2"))]
+
+        (->> (rx/zip (rp/query! :file-raw {:id file-id :features features})
                      (rp/query! :team-users {:file-id file-id})
                      (rp/query! :project {:id project-id})
                      (rp/query! :file-libraries {:file-id file-id})
