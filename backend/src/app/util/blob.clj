@@ -28,9 +28,11 @@
 (declare decode-v1)
 (declare decode-v3)
 (declare decode-v4)
+(declare decode-v5)
 (declare encode-v1)
 (declare encode-v3)
 (declare encode-v4)
+(declare encode-v5)
 
 (defn encode
   ([data] (encode data nil))
@@ -40,6 +42,7 @@
        1 (encode-v1 data)
        3 (encode-v3 data)
        4 (encode-v4 data)
+       5 (encode-v5 data)
        (throw (ex-info "unsupported version" {:version version}))))))
 
 (defn decode
@@ -53,6 +56,7 @@
         1 (decode-v1 data ulen)
         3 (decode-v3 data ulen)
         4 (decode-v4 data ulen)
+        5 (decode-v5 data ulen)
         (throw (ex-info "unsupported version" {:version version}))))))
 
 ;; --- IMPL
@@ -124,3 +128,21 @@
     (Zstd/decompressByteArray ^bytes udata 0 ulen
                               ^bytes cdata 6 (- (alength cdata) 6))
     (fres/decode udata)))
+
+(defn- encode-v5
+  [data]
+  (let [data  (fres/encode data)
+        dlen  (alength ^bytes data)]
+    (with-open [^ByteArrayOutputStream baos (ByteArrayOutputStream. (+ dlen 2 4))
+                ^DataOutputStream dos (DataOutputStream. baos)]
+      (.writeShort dos (short 5)) ;; version number
+      (.writeInt dos (int dlen))
+      (.write dos ^bytes data (int 0) (int dlen))
+      (.toByteArray baos))))
+
+(defn- decode-v5
+  [^bytes cdata ^long ulen]
+  (let [udata (byte-array ulen)]
+    (System/arraycopy cdata 6 udata 0 ulen)
+    (fres/decode udata)))
+
