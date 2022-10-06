@@ -6,6 +6,7 @@
 
 (ns user
   (:require
+   [app.srepl.main :as srepl]
    [app.common.data :as d]
    [app.common.exceptions :as ex]
    [app.common.geom.matrix :as gmt]
@@ -13,6 +14,7 @@
    [app.common.perf :as perf]
    [app.common.pprint :as pp]
    [app.common.transit :as t]
+   [app.common.uuid :as uuid]
    [app.config :as cfg]
    [app.main :as main]
    [app.srepl.main :as srepl]
