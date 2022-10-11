@@ -118,10 +118,11 @@
 
 (defn- rename-file
   [conn {:keys [id name] :as params}]
-  (db/update! conn :file
-              {:name name}
-              {:id id}))
-
+  (-> (db/update! conn :file
+                  {:name name
+                   :modified-at (dt/now)}
+                  {:id id})
+      (select-keys [:id :name :created-at :modified-at])))
 
 ;; --- Mutation: Set File shared
 
