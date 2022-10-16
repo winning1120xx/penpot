@@ -18,10 +18,10 @@
    [app.loggers.audit :as audit]
    [app.metrics :as mtx]
    [app.msgbus :as mbus]
+   [app.rpc.climit :as climit]
    [app.rpc.permissions :as perms]
    [app.rpc.queries.files :as files]
    [app.rpc.queries.projects :as proj]
-   [app.rpc.semaphore :as rsem]
    [app.storage.impl :as simpl]
    [app.util.blob :as blob]
    [app.util.services :as sv]
@@ -314,8 +314,10 @@
      (or (contains? o :changes)
          (contains? o :changes-with-metadata)))))
 
+
 (sv/defmethod ::update-file
-  {::rsem/queue :update-file}
+  {::climit/queue :update-file
+   ::climit/key-fn :id}
   [{:keys [pool] :as cfg} {:keys [id profile-id] :as params}]
   (db/with-atomic [conn pool]
     (db/xact-lock! conn id)
