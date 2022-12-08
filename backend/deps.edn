@@ -18,6 +18,8 @@
 
   io.prometheus/simpleclient_httpserver {:mvn/version "0.16.0"}
 
+  com.yubico/webauthn-server-core {:mvn/version "2.2.0"}
+
   io.lettuce/lettuce-core {:mvn/version "6.2.1.RELEASE"}
   java-http-clj/java-http-clj {:mvn/version "0.4.3"}
 
