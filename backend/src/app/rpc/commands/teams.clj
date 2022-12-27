@@ -19,6 +19,7 @@
    [app.media :as media]
    [app.rpc :as-alias rpc]
    [app.rpc.climit :as climit]
+   [app.rpc.quotes :as quotes]
    [app.rpc.doc :as-alias doc]
    [app.rpc.helpers :as rph]
    [app.rpc.permissions :as perms]
@@ -297,6 +298,9 @@
   {::doc/added "1.17"}
   [{:keys [::db/pool] :as cfg} {:keys [::rpc/profile-id] :as params}]
   (db/with-atomic [conn pool]
+    (quotes/check-quote! conn {::quotes/profile-id profile-id
+                               ::quotes/id ::quotes/teams-per-profile})
+
     (create-team conn (assoc params :profile-id profile-id))))
 
 (defn create-team
@@ -738,6 +742,12 @@
           profile  (db/get-by-id conn :profile profile-id)
           team     (db/get-by-id conn :team team-id)
           emails   (cond-> (or emails #{}) (string? email) (conj email))]
+
+      (quotes/check-quote! conn {::quotes/id :invitations-per-team
+                                 ::quotes/profile-id profile-id
+                                 ::quotes/team-id team-id
+                                 ::quotes/incr (count email)})
+
 
       (when-not (:is-admin perms)
         (ex/raise :type :validation

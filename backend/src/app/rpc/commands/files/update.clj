@@ -270,7 +270,7 @@
   [conn {:keys [id revn] :as params}]
   (->> (db/exec! conn [sql:lagged-changes id revn])
        (map files/decode-row)
-       (vec))
+       (vec)))
 
 (defn- send-notifications!
   [{:keys [conn] :as cfg} {:keys [file changes session-id] :as params}]

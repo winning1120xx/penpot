@@ -189,6 +189,7 @@
 (s/def ::file-change-event
   (s/keys :req-un [::type ::profile-id ::file-id ::session-id ::revn ::changes]))
 
+;; FIXME: look with alotor
 
 (defn handle-file-change
   [{:keys [file-id changes] :as msg}]

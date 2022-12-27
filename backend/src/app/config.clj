@@ -130,6 +130,13 @@
 (s/def ::database-min-pool-size ::us/integer)
 (s/def ::database-max-pool-size ::us/integer)
 
+(s/def ::quotes-teams-per-profile ::us/integer)
+(s/def ::quotes-projects-per-team ::us/integer)
+(s/def ::quotes-invitations-per-team ::us/integer)
+(s/def ::quotes-profiles-per-team ::us/integer)
+(s/def ::quotes-files-per-project ::us/integer)
+(s/def ::quotes-files-per-team ::us/integer)
+
 (s/def ::default-blob-version ::us/integer)
 (s/def ::error-report-webhook ::us/string)
 (s/def ::user-feedback-destination ::us/string)
@@ -277,6 +284,14 @@
                    ::profile-complaint-max-age
                    ::profile-complaint-threshold
                    ::public-uri
+
+                   ::quotes-teams-per-profile
+                   ::quotes-projects-per-team
+                   ::quotes-invitations-per-team
+                   ::quotes-profiles-per-team
+                   ::quotes-files-per-project
+                   ::quotes-files-per-team
+
                    ::redis-uri
                    ::registration-domain-whitelist
                    ::rpc-rlimit-config
