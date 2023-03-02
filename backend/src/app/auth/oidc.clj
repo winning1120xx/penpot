@@ -32,7 +32,7 @@
    [integrant.core :as ig]
    [promesa.core :as p]
    [promesa.exec :as px]
-   [yetti.response :as yrs]))
+   [yetti.response :as-alias yrs]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; HELPERS
@@ -431,7 +431,8 @@
 
 (defn- redirect-response
   [uri]
-  (yrs/response :status 302 :headers {"location" (str uri)}))
+  {::yrs/status 302
+   ::yrs/headers {"location" (str uri)}})
 
 (defn- generate-error-redirect
   [_ error]
@@ -489,7 +490,8 @@
                                 :props props
                                 :exp (dt/in-future "4h")})
         uri   (build-auth-uri cfg state)]
-    (yrs/response 200 {:redirect-uri uri})))
+    {::yrs/status 200
+     ::yrs/headers {:redirect-uri uri}}))
 
 (defn- callback-handler
   [cfg request]

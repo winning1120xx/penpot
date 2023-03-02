@@ -14,6 +14,7 @@
    [cuerdas.core :as str]
    [promesa.core :as p]
    [promesa.exec :as px]
+   [promesa.util :as pu]
    [yetti.adapter :as yt]
    [yetti.middleware :as ymw]
    [yetti.request :as yrq]
@@ -22,7 +23,10 @@
    com.fasterxml.jackson.core.JsonParseException
    com.fasterxml.jackson.core.io.JsonEOFException
    io.undertow.server.RequestTooBigException
-   java.io.OutputStream))
+   java.io.OutputStream
+   java.io.InputStream))
+
+(set! *warn-on-reflection* true)
 
 (def server-timing
   {:name ::server-timing
@@ -44,14 +48,14 @@
             (let [header (yrq/get-header request "content-type")]
               (cond
                 (str/starts-with? header "application/transit+json")
-                (with-open [is (yrq/body request)]
+                (with-open [^InputStream is (yrq/body request)]
                   (let [params (t/read! (t/reader is))]
                     (-> request
                         (assoc :body-params params)
                         (update :params merge params))))
 
                 (str/starts-with? header "application/json")
-                (with-open [is (yrq/body request)]
+                (with-open [^InputStream is (yrq/body request)]
                   (let [params (json/decode is json-mapper)]
                     (-> request
                         (assoc :body-params params)
@@ -62,6 +66,11 @@
 
           (handle-error [raise cause]
             (cond
+              (instance? RuntimeException cause)
+              (if-let [cause (ex-cause cause)]
+                (handle-error raise cause)
+                (raise cause))
+
               (instance? RequestTooBigException cause)
               (raise (ex/error :type :validation
                                :code :request-body-too-large
@@ -78,12 +87,12 @@
               (raise cause)))]
 
     (fn [request respond raise]
-      (let [request (ex/try! (process-request request))]
-        (if (ex/exception? request)
-          (if (ex/runtime-exception? request)
-            (handle-error raise (or (ex-cause request) request))
-            (handle-error raise request))
-          (handler request respond raise))))))
+      (if (= (yrq/method request) :post)
+        (let [request (ex/try! (process-request request))]
+          (if (ex/exception? request)
+            (handle-error raise request)
+            (handler request respond raise)))
+        (handler request respond raise)))))
 
 (def parse-request
   {:name ::parse-request
@@ -94,12 +103,7 @@
   needed because transit-java calls flush very aggresivelly on each
   object write."
   [^java.io.OutputStream os ^long chunk-size]
-  (proxy [java.io.BufferedOutputStream] [os (int chunk-size)]
-    ;; Explicitly do not forward flush
-    (flush [])
-    (close []
-      (proxy-super flush)
-      (proxy-super close))))
+  (yetti.util.BufferedOutputStream. os (int chunk-size)))
 
 (def ^:const buffer-size (:xnio/buffer-size yt/defaults))
 
@@ -109,13 +113,10 @@
             (reify yrs/StreamableResponseBody
               (-write-body-to-stream [_ _ output-stream]
                 (try
-                  (with-open [bos (buffered-output-stream output-stream buffer-size)]
+                  (with-open [^OutputStream bos (buffered-output-stream output-stream buffer-size)]
                     (let [tw (t/writer bos opts)]
                       (t/write! tw data)))
-
-                  (catch java.io.IOException _cause
-                    ;; Do nothing, EOF means client closes connection abruptly
-                    nil)
+                  (catch java.io.IOException _)
                   (catch Throwable cause
                     (l/warn :hint "unexpected error on encoding response"
                             :cause cause))
@@ -126,13 +127,10 @@
             (reify yrs/StreamableResponseBody
               (-write-body-to-stream [_ _ output-stream]
                 (try
-
-                  (with-open [bos (buffered-output-stream output-stream buffer-size)]
+                  (with-open [^OutputStream bos (buffered-output-stream output-stream buffer-size)]
                     (json/write! bos data json-mapper))
 
-                  (catch java.io.IOException _cause
-                    ;; Do nothing, EOF means client closes connection abruptly
-                    nil)
+                  (catch java.io.IOException _)
                   (catch Throwable cause
                     (l/warn :hint "unexpected error on encoding response"
                             :cause cause))
@@ -140,15 +138,15 @@
                     (.close ^OutputStream output-stream))))))
 
           (format-response-with-json [response _]
-            (let [body (yrs/body response)]
+            (let [body (::yrs/body response)]
               (if (or (boolean? body) (coll? body))
                 (-> response
-                    (update :headers assoc "content-type" "application/json")
-                    (assoc :body (json-streamable-body body)))
+                    (update ::yrs/headers assoc "content-type" "application/json")
+                    (assoc ::yrs/body (json-streamable-body body)))
                 response)))
 
           (format-response-with-transit [response request]
-            (let [body (yrs/body response)]
+            (let [body (::yrs/body response)]
               (if (or (boolean? body) (coll? body))
                 (let [qs   (yrq/query request)
                       opts (if (or (contains? cf/flags :transit-readable-response)
@@ -156,8 +154,8 @@
                              {:type :json-verbose}
                              {:type :json})]
                   (-> response
-                      (update :headers assoc "content-type" "application/transit+json")
-                      (assoc :body (transit-streamable-body body opts))))
+                      (update ::yrs/headers assoc "content-type" "application/transit+json")
+                      (assoc ::yrs/body (transit-streamable-body body opts))))
                 response)))
 
           (format-response [response request]
@@ -181,8 +179,7 @@
     (fn [request respond raise]
       (handler request
                (fn [response]
-                 (let [response (process-response response request)]
-                   (respond response)))
+                 (respond (process-response response request)))
                raise))))
 
 (def format-response
@@ -191,9 +188,12 @@
 
 (defn wrap-errors
   [handler on-error]
-  (fn [request respond _]
+  (fn [request respond raise]
     (handler request respond (fn [cause]
-                               (-> cause (on-error request) respond)))))
+                               (try
+                                 (respond (on-error cause request))
+                                 (catch Throwable cause
+                                   (raise cause)))))))
 
 (def errors
   {:name ::errors
@@ -213,11 +213,11 @@
                     (assoc "access-control-allow-headers" "x-frontend-version, content-type, accept, x-requested-width"))))
 
             (update-response [response request]
-              (update response :headers add-headers request))]
+              (update response ::yrs/headers add-headers request))]
 
       (fn [request respond raise]
         (if (= (yrq/method request) :options)
-          (-> (yrs/response 200)
+          (-> {::yrs/status 200}
               (update-response request)
               (respond))
           (handler request
@@ -237,7 +237,7 @@
         (let [method (yrq/method request)]
           (if (contains? allowed method)
             (handler request respond raise)
-            (respond (yrs/response 405))))))))
+            (respond {::yrs/status 405})))))))
 
 (def restrict-methods
   {:name ::restrict-methods
@@ -248,11 +248,10 @@
    :compile
    (fn [& _]
      (fn [handler executor]
-       (fn [request respond raise]
-         (-> (px/submit! executor #(handler request))
-             (p/bind p/wrap)
-             (p/then respond)
-             (p/catch raise)))))})
+       (let [executor (px/resolve-executor executor)]
+         (fn [request respond raise]
+           (->> (px/submit! executor (partial handler request))
+                (p/fnly (pu/handler respond raise)))))))})
 
 (def with-config
   {:name ::with-config
