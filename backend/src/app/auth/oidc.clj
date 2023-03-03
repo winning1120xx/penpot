@@ -425,7 +425,7 @@
 (defn- get-profile
   [{:keys [::db/pool ::wrk/executor] :as cfg} info]
   (px/with-dispatch executor
-    (with-open [conn (db/open pool)]
+    (dm/with-open [conn (db/open pool)]
       (some->> (:email info)
                (profile/get-profile-by-email conn)))))
 
