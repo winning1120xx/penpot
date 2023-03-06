@@ -4,7 +4,9 @@
 
 ### :boom: Breaking changes & Deprecations
 
+
 ### :sparkles: New features
+
 - Adds more accessibility improvements in dashboard [Taiga #4577](https://tree.taiga.io/project/penpot/us/4577)
 - Adds paddings and gaps prediction on layout creation [Taiga #4838](https://tree.taiga.io/project/penpot/task/4838)
 - Add visual feedback when proportionally scaling text elements with **K** [Taiga #3415](https://tree.taiga.io/project/penpot/us/3415)
@@ -12,6 +14,8 @@
 - Allow for absolute positioned elements inside layout [Taiga #4834](https://tree.taiga.io/project/penpot/us/4834)
 - Add z-index option for flex layout items [Taiga #2980](https://tree.taiga.io/project/penpot/us/2980)
 - Scale content proportionally affects strokes, shadows, blurs and corners [Taiga #1951](https://tree.taiga.io/project/penpot/us/1951)
+- Adds environment variables for specifying the export and backend URI for the frontend docker image, thanks to @Supernova3339 for the initial PR and suggestion [Github #2984](https://github.com/penpot/penpot/issues/2984)
+
 
 ### :bug: Bugs fixed
 
