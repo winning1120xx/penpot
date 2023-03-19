@@ -472,6 +472,10 @@
   [& params]
   (apply db/insert! *pool* params))
 
+(defn db-delete!
+  [& params]
+  (apply db/delete! *pool* params))
+
 (defn db-query
   [& params]
   (apply db/query *pool* params))
