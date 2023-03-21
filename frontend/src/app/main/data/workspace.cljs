@@ -1622,6 +1622,7 @@
 
                   process-shape
                   (fn [_ shape]
+                    (js/console.log "process-shape" (clj->js shape))
                     (-> shape
                         (assoc :frame-id frame-id)
                         (assoc :parent-id parent-id)
@@ -1634,9 +1635,36 @@
                         (cond-> (= (:type shape) :text)
                           (ctt/remove-external-typographies file-id))))
 
+                  objects (:objects page)
+
+
+
+                  components  (into {}
+                                    (filter (fn [[_key val]]
+                                              (:component-root? val))
+                                            paste-objects))
+
+                  conponent-keys (keys components)
+
+                  children-ids (->> conponent-keys
+                                (map #(cph/get-children-ids paste-objects %))
+                                    flatten) ;; palba to do - flatten is not efficent
+
+                  children-ids (concat conponent-keys children-ids)
+
+
+                  _ (prn "children-ids" children-ids (type children-ids))
+                  _ (prn "keys paste-objects" (keys paste-objects))
+
+
+                  paste-objects (apply dissoc paste-objects children-ids)
+                  _ (prn "keys paste-objects2" (keys paste-objects))
+
+
+
                   paste-objects (->> paste-objects (d/mapm process-shape))
 
-                  all-objects (merge (:objects page) paste-objects)
+                  all-objects (merge objects paste-objects)
 
                   changes  (-> (dws/prepare-duplicate-changes all-objects page selected delta it nil)
                                (pcb/amend-changes (partial process-rchange media-idx))
