@@ -51,6 +51,7 @@
    [app.main.data.workspace.layers :as dwly]
    [app.main.data.workspace.layout :as layout]
    [app.main.data.workspace.libraries :as dwl]
+   [app.main.data.workspace.libraries-helpers :as dwlh]
    [app.main.data.workspace.media :as dwm]
    [app.main.data.workspace.notifications :as dwn]
    [app.main.data.workspace.path :as dwdp]
@@ -77,6 +78,7 @@
    [app.util.timers :as tm]
    [app.util.webapi :as wapi]
    [beicon.core :as rx]
+   [clojure.set :as set]
    [cljs.spec.alpha :as s]
    [cuerdas.core :as str]
    [linked.core :as lks]
@@ -1611,6 +1613,37 @@
                    (not= root-file-id (:current-file-id state))
                    (nil? (get-in state [:workspace-libraries root-file-id])))))
 
+          (paste-components [paste-objects page it file-id state delta]
+                          (let [libraries (wsh/get-libraries state)
+                                components (into {}
+                                                 (filter (fn [[_key val]]
+                                                           (:component-root? val))
+                                                         paste-objects))
+
+                                component-keys (keys components)
+                                component-vals (vals components)
+
+                                children-ids (->> component-keys
+                                                  (map #(cph/get-children-ids paste-objects %))
+                                                  (apply concat))
+                                componments-with-children-ids (concat component-keys children-ids)
+                                paste-objects (apply dissoc paste-objects componments-with-children-ids)
+                                selected (set/difference selected (set componments-with-children-ids))
+                                changes   (pcb/empty-changes it (:id page))
+                                generate-change (fn [changes component]
+                                                   (let [[_ changes]
+                                                         (dwlh/generate-instantiate-component changes
+                                                                                              file-id
+                                                                                              (:component-id component)
+                                                                                              (gpt/add (first (:points component)) delta)
+                                                                                              page
+                                                                                              libraries)]
+                                                     changes))
+
+                                changes (reduce generate-change changes component-vals)]
+                              [paste-objects selected changes]))
+
+
           ;; Proceed with the standard shape paste process.
           (do-paste [it state mouse-pos media]
             (let [file-id      (:current-file-id state)
@@ -1639,40 +1672,30 @@
 
 
 
-                  components  (into {}
-                                    (filter (fn [[_key val]]
-                                              (:component-root? val))
-                                            paste-objects))
-
-                  conponent-keys (keys components)
-
-                  children-ids (->> conponent-keys
-                                (map #(cph/get-children-ids paste-objects %))
-                                    flatten) ;; palba to do - flatten is not efficent
-
-                  children-ids (concat conponent-keys children-ids)
-
-
-                  _ (prn "children-ids" children-ids (type children-ids))
-                  _ (prn "keys paste-objects" (keys paste-objects))
-
-
-                  paste-objects (apply dissoc paste-objects children-ids)
-                  _ (prn "keys paste-objects2" (keys paste-objects))
-
+                  ;; remove the components from the normal paste flow
+                  [paste-objects selected component-changes] (paste-components paste-objects page it file-id state delta)
 
 
                   paste-objects (->> paste-objects (d/mapm process-shape))
 
                   all-objects (merge objects paste-objects)
 
+
+
+
+
                   changes  (-> (dws/prepare-duplicate-changes all-objects page selected delta it nil)
                                (pcb/amend-changes (partial process-rchange media-idx))
                                (pcb/amend-changes (partial change-add-obj-index paste-objects selected index)))
 
+
+
                   ;; Adds a resize-parents operation so the groups are updated. We add all the new objects
                   new-objects-ids (->> changes :redo-changes (filter #(= (:type %) :add-obj)) (mapv :id))
                   changes (pcb/resize-parents changes new-objects-ids)
+
+                  changes (pcb/concat-changes changes component-changes)
+
 
                   selected  (->> changes
                                  :redo-changes
