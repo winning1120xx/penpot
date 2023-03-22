@@ -1638,7 +1638,7 @@
 
                   all-objects (merge (:objects page) paste-objects)
 
-                  changes  (-> (dws/prepare-duplicate-changes all-objects page selected delta it)
+                  changes  (-> (dws/prepare-duplicate-changes all-objects page selected delta it nil)
                                (pcb/amend-changes (partial process-rchange media-idx))
                                (pcb/amend-changes (partial change-add-obj-index paste-objects selected index)))
 
