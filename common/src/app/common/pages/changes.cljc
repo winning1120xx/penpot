@@ -326,8 +326,9 @@
   (ctf/delete-component data id skip-undelete?))
 
 (defmethod process-change :restore-component
-  [data {:keys [id]}]
-  (ctf/restore-component data id))
+  [data {:keys [id page-id]}]
+  (let [_ (prn "process-change :restore-component page-id" page-id)]
+  (ctf/restore-component data id page-id)))
 
 (defmethod process-change :purge-component
   [data {:keys [id]}]
