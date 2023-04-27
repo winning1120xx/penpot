@@ -26,7 +26,6 @@
   flex-direction: row;
   gap: $s-2;
   height: $s-32;
-  margin: $s-4 $s-4 0 $s-4;
   padding: $s-2 $s-2 $s-2 0;
   border-radius: $br-8;
   background: var(--color-background-secondary);
@@ -44,9 +43,11 @@
       height: $s-28;
       width: 100%;
       margin: 0;
+      padding: 0 $s-8;
       border-radius: $br-5;
       background-color: transparent;
       color: var(--tab-foreground-color);
+      white-space: nowrap;
 
       &.current,
       &.current:hover {

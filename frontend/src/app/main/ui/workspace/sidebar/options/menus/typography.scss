@@ -1,0 +1,236 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+//
+// Copyright (c) KALEIDOS INC
+
+@import "refactor/common-refactor.scss";
+
+.typography-entry {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: $s-32;
+  padding: 0 $s-12;
+  margin-bottom: $s-4;
+  border-radius: $br-8;
+  background-color: var(--assets-item-background-color);
+
+  .typography-selection-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex: 1;
+    height: 100%;
+    width: 100%;
+
+    &.is-selectable {
+      cursor: pointer;
+    }
+
+    .typography-sample {
+      color: var(--assets-item-name-foreground-color-hover);
+    }
+    .typography-name,
+    .typography-font {
+      @include titleTipography;
+      @include textEllipsis;
+      margin-left: $s-6;
+      color: var(--assets-item-name-foreground-color-hover);
+    }
+    .typography-font {
+      color: var(--assets-item-name-foreground-color);
+    }
+  }
+
+  &.selected {
+    border: $s-1 solid var(--assets-item-border-color);
+  }
+
+  &:hover {
+    background-color: var(--assets-item-background-color-hover);
+  }
+}
+.advanced-options-wrapper {
+  height: 100%;
+  margin-bottom: $s-8;
+  .font-name-wrapper {
+    @include titleTipography;
+    display: flex;
+    align-items: center;
+    height: $s-32;
+    border-radius: $br-8;
+    box-sizing: border-box;
+    background-color: var(--assets-item-background-color);
+    border: $s-1 solid transparent;
+    margin-bottom: $s-4;
+    .adv-typography-name {
+      @include removeInputStyle;
+      color: var(--input-foreground-color);
+      flex-grow: 1;
+      margin: 0;
+    }
+    .action-btn {
+      @extend .button-tertiary;
+      @include flexCenter;
+      width: $s-28;
+      height: $s-28;
+      svg {
+        @extend .button-icon-small;
+      }
+    }
+    &:focus-within {
+      border: $s-1 solid var(--input-border-color-active);
+      .adv-typography-name {
+        color: var(--input-foreground-color-active);
+      }
+    }
+    &:hover {
+      background-color: var(--assets-item-background-color-hover);
+    }
+  }
+
+  .typography-options {
+    position: relative;
+    .font-option {
+      @extend .asset-element;
+    }
+    .font-modifiers {
+      display: flex;
+      gap: $s-4;
+      .font-size-options {
+        @extend .asset-element;
+        flex-grow: 1;
+        .font-size-select {
+          @include removeInputStyle;
+          height: 100%;
+          width: 100%;
+          margin: 0;
+          color: var(--assets-item-name-foreground-color);
+          option {
+            color: var(--assets-item-name-foreground-color);
+          }
+          &:hover {
+            color: var(--assets-item-name-foreground-color-hover);
+            option {
+              color: var(--assets-item-name-foreground-color-hover);
+            }
+          }
+        }
+      }
+      .font-variant-option {
+        @extend .asset-element;
+        border: none;
+        outline: none;
+        flex-grow: 2;
+      }
+    }
+    .typography-variations {
+      display: flex;
+      gap: $s-4;
+      align-items: center;
+      .spacing-options {
+        display: flex;
+        align-items: center;
+        gap: $s-4;
+        .line-height,
+        .letter-spacing {
+          @extend .asset-element;
+          .icon {
+            @include flexCenter;
+            width: $s-28;
+            svg {
+              @extend .button-icon-small;
+            }
+          }
+          .line-height-input,
+          .letter-spacing-input {
+            @include removeInputStyle;
+            @include titleTipography;
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            color: var(--assets-item-name-foreground-color);
+            &:hover,
+            &:active,
+            &:focus {
+              color: var(--assets-item-name-foreground-color-hover);
+            }
+          }
+        }
+      }
+      .text-transform {
+        @extend .asset-element;
+        width: fit-content;
+        padding: 0;
+      }
+    }
+  }
+}
+
+.font-selector {
+  background-color: crimson;
+  @include flexCenter;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  z-index: $z-index-10;
+
+  .font-selector-dropdown {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    height: 100%;
+    .header {
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      .title {
+        @include tabTitleTipography;
+        background-color: darksalmon;
+        margin: 9px 17px;
+      }
+    }
+    .fonts-list {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      flex: 1 1 auto;
+      border-radius: $br-8;
+      background-color: var(--dropdown-background-color);
+    }
+    .font-wrapper {
+      padding-bottom: $s-4;
+      .font-item {
+        @extend .asset-element;
+
+        display: flex;
+        .icon {
+          @include flexCenter;
+          height: $s-28;
+          width: $s-28;
+          svg {
+            @extend .button-icon-small;
+          }
+        }
+        &.selected {
+          color: var(--assets-item-name-foreground-color-hover);
+          .icon {
+            svg {
+              stroke: var(--assets-item-name-foreground-color-hover)
+            }
+          }
+        }
+  
+        .label {
+          @include titleTipography;
+          flex-grow: 1;
+        }
+      }
+    }
+
+  }
+}

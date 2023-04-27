@@ -7,12 +7,12 @@
 (ns app.main.ui
   (:require
    [app.config :as cf]
+   [app.main.features :as features]
    [app.main.refs :as refs]
    [app.main.store :as st]
    [app.main.ui.auth :refer [auth]]
    [app.main.ui.auth.verify-token :refer [verify-token]]
    [app.main.ui.context :as ctx]
-   [app.main.ui.cursors :as c]
    [app.main.ui.dashboard :refer [dashboard]]
    [app.main.ui.debug.components-preview :as cm]
    [app.main.ui.icons :as i]
@@ -37,8 +37,10 @@
 (mf/defc main-page
   {::mf/wrap [#(mf/catch % {:fallback on-main-error})]}
   [{:keys [route profile]}]
-  (let [{:keys [data params]} route]
+  (let [{:keys [data params]} route
+        new-css-system       (features/use-feature :new-css-system)]
     [:& (mf/provider ctx/current-route) {:value route}
+     [:& (mf/provider ctx/new-css-system) {:value new-css-system}
      (case (:name data)
        (:auth-login
         :auth-register
@@ -62,7 +64,7 @@
        (when *assert*
          [:div.debug-preview
           [:h1 "Cursors"]
-          [:& c/debug-preview]
+          ;; [:& c/debug-preview]
           [:h1 "Icons"]
           [:& i/debug-icons-preview]])
 
@@ -131,7 +133,7 @@
                                   :page-id page-id
                                   :layout-name layout
                                   :key file-id}])
-       nil)]))
+       nil)]]))
 
 (mf/defc app
   []

@@ -1,0 +1,93 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+//
+// Copyright (c) KALEIDOS INC
+
+@import "refactor/common-refactor.scss";
+
+.assets-btn {
+  @extend .button-tertiary;
+  height: $s-32;
+  width: calc($s-24 + $s-4);
+  padding: 0;
+  border-radius: $br-8;
+  svg {
+    @extend .button-icon;
+  }
+}
+
+.colors-group {
+  margin-top: $s-4;
+  .asset-list {
+    padding: 0 12px;
+    .asset-list-item {
+      position: relative;
+      display: flex;
+      align-items: center;
+      height: $s-32;
+      padding: $s-8 $s-12;
+      margin-bottom: $s-4;
+      border-radius: $br-8;
+      background-color: var(--assets-item-background-color);
+      cursor: pointer;
+      .bullet-block {
+        height: 100%;
+        margin-right: $s-6;
+      }
+      .name-block {
+        @include titleTipography;
+        display: grid;
+        grid-template-columns: auto 1fr;
+
+        margin: 0;
+        .default-name-only,
+        .name {
+          color: white;
+          margin-right: $s-6;
+          @include textEllipsis;
+        }
+        .default-name {
+          color: gray;
+        }
+      }
+      &:hover {
+        background-color: var(--assets-item-background-color-hover);
+      }
+      .element-name {
+        @include textEllipsis;
+        color: var(--color-foreground-primary);
+      }
+      input.element-name {
+        @include textEllipsis;
+        @include titleTipography;
+        @include removeInputStyle;
+        flex-grow: 1;
+        height: $s-28;
+        max-width: calc(var(--parent-size) - (var(--depth) * var(--layer-indentation-size)));
+        margin: 0;
+        padding-left: $s-6;
+        border-radius: $br-8;
+        border: 1px solid var(--input-border-color-focus);
+        color: var(--layer-row-foreground-color);
+      }
+    }
+  }
+  .grid-placeholder {
+    background-color: var(--assets-item-background-color-hover);
+    border-radius: $br-8;
+  }
+  .drop-space {
+    height: $s-12;
+  }
+  .dragging {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: $s-8;
+    background-color: var(--assets-item-background-color-drag);
+    border: $s-2 solid var(--assets-item-border-color-drag);
+  }
+}

@@ -1,0 +1,131 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+//
+// Copyright (c) KALEIDOS INC
+
+@import "refactor/common-refactor.scss";
+.modal-overlay {
+  background-color: rgba(0, 0, 0, 0.4);
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  position: fixed;
+  height: 100%;
+  left: 0;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+  .modal-dialog {
+    background-color: var(--modal-background-color);
+    border-radius: $br-8;
+    height: $s-400;
+    max-height: 100%;
+    width: $s-664;
+    .close {
+      @extend .button-tertiary;
+      position: absolute;
+      width: $s-28;
+      height: $s-28;
+      svg {
+        @extend .button-icon;
+      }
+    }
+    .modal-content {
+      .libraries-header {
+        padding: $s-12;
+      }
+
+      .libraries-content,
+      .updates-content {
+        padding-top: $s-16;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: $s-24;
+
+        .section {
+          :global(.title-spacing) {
+            margin: 0 0 $s-24 calc(-1 * $s-8);
+          }
+          .section-list {
+            .section-list-item {
+              display: grid;
+              grid-template-columns: 1fr auto;
+              margin-bottom: $s-24;
+              .item-name {
+                @include titleTipography;
+                color: var(--library-name-foreground-color);
+              }
+              .item-contents {
+                @include titleTipography;
+                color: var(--library-content-foreground-color);
+              }
+
+              .item-publish,
+              .item-unpublish,
+              .item-update {
+                @extend .button-primary;
+                @include tabTitleTipography;
+                height: $s-32;
+                padding: $s-8 $s-12;
+                border-radius: $br-8;
+              }
+              .item-unpublish {
+                @extend .button-secondary;
+              }
+              .item-button {
+                @extend .button-tertiary;
+                width: $s-32;
+                height: $s-32;
+                border-radius: $br-8;
+                svg {
+                  @extend .button-icon;
+                }
+              }
+              .item-button-icon {
+                width: $s-28;
+                height: $s-28;
+                svg {
+                  @extend .button-icon;
+                }
+              }
+
+              .item-button-input {
+                background-color: darkcyan;
+              }
+            }
+          }
+
+          .section-title {
+            @include titleTipography;
+            margin-bottom: $s-8;
+          }
+          .libraries-search {
+            margin-bottom: $s-24;
+            .search-icon {
+              @include flexCenter;
+              width: $s-28;
+              svg {
+                @extend .button-icon-small;
+              }
+            }
+          }
+          .section-list-empty {
+            @include titleTipography;
+            display: flex;
+            align-items: center;
+
+            svg {
+              @extend .button-icon-small;
+              width: $s-16;
+              height: $s-16;
+            }
+          }
+        }
+      }
+      .updates-content {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+}

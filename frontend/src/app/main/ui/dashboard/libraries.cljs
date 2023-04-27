@@ -27,8 +27,8 @@
         files           (if (nil? files-map)
                           nil
                           (->> (vals files-map)
-                             (sort-by :modified-at)
-                             (reverse)))
+                               (sort-by :modified-at)
+                               (reverse)))
 
         components-v2   (features/use-feature :components-v2)
 
@@ -73,7 +73,7 @@
      [:header.dashboard-header {:ref rowref}
       [:div.dashboard-title#dashboard-libraries-title
        [:h1 (tr "dashboard.libraries-title")]]]
-     [:section.dashboard-container.no-bg.dashboard-shared 
+     [:section.dashboard-container.no-bg.dashboard-shared
       [:& grid {:files files
                 :project default-project
                 :origin :libraries
