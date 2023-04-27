@@ -6,40 +6,35 @@
 
 (ns app.common.schema
   (:refer-clojure :exclude [deref merge])
-  #?(:cljs (:require-macros [app.common.schema :refer [ignoring]]))
+  #?(:cljs (:require-macros [app.common.schema :refer [ignoring pred-fn]]))
   (:require
    [app.common.data :as d]
+   [app.common.data.macros :as dm]
+   [app.common.schema.generators :as sg]
    [app.common.schema.openapi :as-alias oapi]
+   [app.common.schema.registry :as sr]
    [app.common.uuid :as uuid]
    [clojure.test.check.generators :as tgen]
    [cuerdas.core :as str]
    [malli.core :as m]
    [malli.error :as me]
-   [malli.experimental.describe :as med]
+   [malli.dev.pretty :as mdp]
    [malli.generator :as mg]
    [malli.registry :as mr]
    [malli.transform :as mt]
    [malli.util :as mu]))
 
-(def registry (atom {}))
-
-(def default-registry
-  (mr/composite-registry
-   m/default-registry
-   (mu/schemas)
-   (mr/mutable-registry registry)))
-
 (defn validate
-  [schema value]
-  (m/validate schema value {:registry default-registry}))
+  [s value]
+  (m/validate s value {:registry sr/default-registry}))
 
 (defn explain
-  [schema value]
-  (m/explain schema value {:registry default-registry}))
+  [s value]
+  (m/explain s value {:registry sr/default-registry}))
 
 (defn explain-data
-  [schema value]
-  (mu/explain-data schema value {:registry default-registry}))
+  [s value]
+  (mu/explain-data s value {:registry sr/default-registry}))
 
 (defn schema?
   [o]
@@ -47,15 +42,21 @@
 
 (defn schema
   [s]
-  (m/schema s {:registry default-registry}))
+  (m/schema s {:registry sr/default-registry}))
 
 (defn humanize
   [exp]
   (me/humanize exp))
 
+(defn generate
+  ([s]
+   (mg/generate (schema s)))
+  ([s o]
+   (mg/generate (schema s) o)))
+
 (defn form
-  [schema]
-  (m/form schema))
+  [s]
+  (m/form s))
 
 (defn merge
   [& items]
@@ -73,15 +74,15 @@
   [exp]
   (malli.error/error-value exp {:malli.error/mask-valid-values '...}))
 
-(def input-transformer
+(def default-transformer
   (let [default-decoder
-        {:compile (fn [schema _registry]
-                    (let [props (m/type-properties schema)]
-                      (::decode props)))}
+        {:compile (fn [s _registry]
+                    (let [props (m/type-properties s)]
+                      (::oapi/decode props)))}
         default-encoder
-        {:compile (fn [schema _]
-                    (let [props (m/type-properties schema)]
-                      (::encode props)))}
+        {:compile (fn [s _]
+                    (let [props (m/type-properties s)]
+                      (::oapi/encode props)))}
 
         coders {:vector mt/-sequential-or-set->vector
                 :sequential mt/-sequential-or-set->seq
@@ -101,28 +102,41 @@
 
      )))
 
-(def output-transformer
-  (mt/transformer
-   #_(mt/json-transformer)
-   (mt/strip-extra-keys-transformer)))
-
 (defn validator
-  [schema]
-  (m/validator schema))
+  [s]
+  (-> s schema m/validator))
 
 (defn explainer
-  [schema]
-  (m/explainer schema))
+  [s]
+  (-> s schema m/explainer))
+
+(defmacro lazy-validator
+  [s]
+  `(let [vfn# (delay (validator ~s))]
+     (fn [v#] (@vfn# v#))))
+
+(defmacro lazy-explainer
+  [s]
+  `(let [vfn# (delay (explainer ~s))]
+     (fn [v#] (@vfn# v#))))
+
+(defn encode
+  ([s val transformer]
+   (m/encode s val {:registry sr/default-registry} transformer))
+  ([s val options transformer]
+   (m/encode s val options transformer)))
+
+(defn decode
+  ([s val transformer]
+   (m/decode s val {:registry sr/default-registry} transformer))
+  ([s val options transformer]
+   (m/decode s val options transformer)))
 
 (defn decoder
-  ([schema transformer]
-   (m/decoder schema transformer))
-  ([schema options transformer]
-   (m/decoder schema options transformer)))
-
-(defn describe
-  [schema]
-  (med/describe schema))
+  ([s transformer]
+   (m/decoder s  {:registry sr/default-registry} transformer))
+  ([s options transformer]
+   (m/decoder s options transformer)))
 
 (defn humanize-data
   [explain-data]
@@ -133,6 +147,10 @@
      :schema schema
      :value value
      :errors errors)))
+
+(defn pretty-explain
+  [s d]
+  (mdp/explain (schema s) d))
 
 (defmacro ignoring
   [expr]
@@ -163,68 +181,76 @@
 
 (defn lookup
   "Lookups schema from registry."
-  ([s] (lookup default-registry s))
+  ([s] (lookup sr/default-registry s))
   ([registry s] (schema (mr/schema registry s))))
 
-(defn generator
-  [schema]
-  (mg/generator schema {:registry default-registry}))
-
-(defn generate
-  [s]
-  (mg/generate (schema s)))
-
-(defmacro assert-schema!
-  [& [s value hint]]
-  (let [sname   (pr-str s)
-        context (if-let [nsdata (:ns &env)]
-                  {:ns (str (:name nsdata))
-                   :schema sname
-                   :line (:line &env)
-                   :file (:file (:meta nsdata))}
-                  {:ns   (str (ns-name *ns*))
-                   :schema sname
-                   :line (:line (meta &form))})
-        hint    (or hint (str "schema assert: " sname))]
-
-    `(let [v# ~value
-           s# (schema ~s)
-           ;; s# (if (m/-ref-schema? s#) (m/deref s#) s#)
-           ]
-       (if (validate s# v#)
-         v#
-         (throw (ex-info ~hint
-                         (into {:type :assertion
-                                :code :data-validation
-                                :hint ~hint
-                                ::explain (explain s# v#)}
-                               ~context)))))))
-
-
-(defmacro assert-expr!
-  [& [expr hint]]
-  (let [hint (or hint (str "expr assert: " (pr-str expr)))]
-    `(when-not ~expr
-       (throw (rx-info ~hint
-                       {:type :assertion
-                        :code :expr-validation
-                        :hint ~hint})))))
+(defn- get-assert-context
+  [env form sname]
+  (if-let [nsdata (:ns env)]
+    {:ns (str (:name nsdata))
+     :schema sname
+     :line (:line env)
+     :file (:file (:meta nsdata))}
+    {:ns   (str (ns-name *ns*))
+     :schema sname
+     :line (:line (meta form))}))
 
 (defmacro assert!
-  [& [expr :as params]]
-  (cond
-    (or (keyword? expr)
-        (vector? expr)
-        (symbol? expr))
-    (when *assert*
-      `(assert-schema! ~@params))
+  [& [s value hint]]
+  (when *assert*
+    `(let [s# (schema ~s)
+           v# ~value
+           h# ~(or hint (str "schema assert: " (pr-str s)))
+           c# ~(get-assert-context &env &form (pr-str s))]
+       (if (validate s# v#)
+         v#
+         (let [exp#  (explain s# v#)
+               data# {:type :assertion
+                      :code :data-validation
+                      :hint h#
+                      ::explain exp#}]
+           (throw (ex-info h# (into data# c#))))))))
 
-    (list? expr)
-    (when *assert*
-      `(assert-expr! ~@params))
+(defmacro assert-fn
+  [s]
+  (if *assert*
+    `(let [s#    (schema ~s)
+           v-fn# (lazy-validator s#)
+           e-fn# (lazy-explainer s#)]
+       (fn [v#]
+         (when-not (v-fn# v#)
+           (let [hint# ~(str "schema assert: " (pr-str s))
+                 exp#  (e-fn# v#)]
+             (throw (ex-info hint#
+                             {:type :assertion
+                              :code :data-validation
+                              :hint hint#
+                              ::explain exp#}))))))
+    `(constantly nil)))
 
-    :else
-    (throw (ex-info "invalid arguments" {}))))
+(defmacro verify-fn
+  [s]
+  (binding [*assert* true]
+    `(assert-fn ~s)))
+
+(def ^:dynamic *context* nil)
+
+(defmacro pred-fn
+  [s]
+  (let [result-sym (with-meta (gensym "result") {:tag 'boolean})]
+    `(let [s#    (schema ~s)
+           v-fn# (lazy-validator s#)
+           e-fn# (lazy-explainer s#)]
+       (fn [v#]
+         (let [~result-sym (v-fn# v#)]
+           (when (and (not ~result-sym) (true? dm/*assert-context*))
+             (let [hint# ~(str "schema assert: " (pr-str s))
+                   exp#  (e-fn# v#)]
+             (throw (ex-info hint# {:type :assertion
+                                    :code :data-validation
+                                    :hint hint#
+                                    ::explain exp#}))))
+         ~result-sym)))))
 
 (defmacro verify!
   "A variant of `assert!` macro that evaluates always, independently
@@ -235,10 +261,24 @@
 
 (defn register! [type s]
   (let [s (if (map? s) (simple-schema s) s)]
-    (swap! registry assoc type s)))
+    (swap! sr/registry assoc type s)))
 
 (defn def! [type s]
-  (register! type s))
+  (register! type s)
+  nil)
+
+;; --- GENERATORS
+
+(defn gen-set-from-choices
+  [choices]
+  (->> tgen/nat
+       (tgen/fmap (fn [i]
+                    (into #{}
+                          (map (fn [_] (rand-nth choices)))
+                          (range i))))))
+
+
+;; --- BUILTIN SCHEMAS
 
 (def! :merge (mu/-merge))
 (def! :union (mu/-union))
@@ -253,7 +293,7 @@
    {:title "uuid"
     :description "UUID formatted string"
     :error/message "should be an uuid"
-    :gen/gen (tgen/fmap (fn [_] (uuid/next)) tgen/any)
+    :gen/gen (sg/uuid)
     ::oapi/type "string"
     ::oapi/format "uuid"
     ::decode #(uuid/uuid (re-matches uuid-rx %))}})
@@ -271,7 +311,7 @@
    {:title "set[type=string]"
     :description "Set of Strings"
     :error/message "should be an set of strings"
-    :gen/gen (tgen/set (generator :string))
+    :gen/gen (-> :string sg/generator sg/set)
     ::oapi/type "array"
     ::oapi/format "set"
     ::oapi/items {:type "string"}
@@ -279,12 +319,81 @@
     ::decode (fn [v]
                (into #{} non-empty-strings-xf (str/split v #"[\s,]+")))}})
 
-;; --- GENERATORS
+(def! ::one-of
+  {:type ::one-of
+   :min 1
+   :max 1
+   :compile (fn [props children options]
+              (let [options (into #{} (last children))
+                    format  (:format props "keyword")]
+                {:pred #(contains? options %)
+                 :type-properties
+                 {:title "one-of"
+                  :description "One of the Set"
+                  :gen/gen (sg/elements options)
+                  ::oapi/type "string"
+                  ::oapi/format (:format props "keyword")
+                  ::decode (if (= format "keyword")
+                             keyword
+                             identity)}}))})
 
-(defn gen-set-from-choices
-  [choices]
-  (->> tgen/nat
-       (tgen/fmap (fn [i]
-                    (into #{}
-                          (map (fn [_] (rand-nth choices)))
-                          (range i))))))
+(def max-safe-int (int 1e6))
+(def min-safe-int (int -1e6))
+
+(def! ::safe-int
+  {:type ::safe-int
+   :pred #(and (int? %) (>= max-safe-int %) (>= % min-safe-int))
+   :type-properties
+   {:title "int"
+    :description "Safe Integer"
+    :error/message "expected to be int in safe range"
+    :gen/gen (sg/small-int)
+    ::oapi/type "integer"
+    ::oapi/format "int64"
+    ::oapi/decode parse-long}})
+
+(def safe-int?
+  (pred-fn ::safe-int))
+
+(def! ::safe-number
+  {:type ::safe-number
+   :pred #(and (number? %) (>= max-safe-int %) (>= % min-safe-int))
+   :type-properties
+   {:title "number"
+    :description "Safe Number"
+    :error/message "expected to be number in safe range"
+    :gen/gen (sg/one-of (sg/small-int)
+                        (sg/small-double))
+    ::oapi/type "number"
+    ::oapi/format "double"
+    ::oapi/decode parse-double}})
+
+(def! ::safe-double
+  {:type ::safe-double
+   :pred #(and (double? %) (>= max-safe-int %) (>= % min-safe-int))
+   :type-properties
+   {:title "number"
+    :description "Safe Number"
+    :error/message "expected to be number in safe range"
+    :gen/gen (sg/small-double)
+    ::oapi/type "number"
+    ::oapi/format "double"
+    ::oapi/decode parse-double}})
+
+(def! ::contains-any
+  {:type ::contains-any
+   :min 1
+   :max 1
+   :compile (fn [props children options]
+              (let [choices (last children)
+                    pred    (if (:strict props)
+                              #(some (fn [prop]
+                                       (some? (get % prop)))
+                                     choices)
+                              #(some (fn [prop]
+                                       (contains? % prop))
+                                     choices))]
+                {:pred pred
+                 :type-properties
+                 {:title "contains"
+                  :description "contains predicate"}}))})

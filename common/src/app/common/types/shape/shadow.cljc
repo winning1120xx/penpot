@@ -6,10 +6,15 @@
 
 (ns app.common.types.shape.shadow
   (:require
+   [app.common.schema :as sm]
    [app.common.spec :as us]
    [app.common.types.color :as ctc]
    [app.common.types.shape.shadow.color :as-alias shadow-color]
    [clojure.spec.alpha :as s]))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; SPECS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; SHADOW EFFECT
 
@@ -47,3 +52,26 @@
 (s/def ::shadow
   (s/coll-of ::shadow-props :kind vector?))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; SCHEMA
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def styles #{:drop-shadow :inner-shadow})
+
+(sm/def! ::shadow
+  [:map {:title "Shadow"}
+   [:id [:maybe ::sm/uuid]]
+   [:style [::sm/one-of styles]]
+   [:offset-x ::sm/safe-number]
+   [:offset-y ::sm/safe-number]
+   [:blur ::sm/safe-number]
+   [:spread ::sm/safe-number]
+   [:hidden :boolean]
+    ;;FIXME: reuse color?
+   [:color
+    [:map
+     [:color {:optional true} :string]
+     [:opacity {:optional true} ::sm/safe-number]
+     [:gradient {:optional true} [:maybe ::ctc/gradient]]
+     [:file-id {:optional true} [:maybe ::sm/uuid]]
+     [:id {:optional true} [:maybe ::sm/uuid]]]]])

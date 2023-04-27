@@ -8,34 +8,51 @@
   (:require
    [app.common.data :as d]
    [app.common.files.features :as ffeat]
+   [app.common.schema :as sm]
    [app.common.spec :as us]
+   [app.common.types.color :as-alias ctc]
+   [app.common.types.grid :as-alias ctpg]
    [app.common.types.page.flow :as ctpf]
-   [app.common.types.page.grid :as ctpg]
    [app.common.types.page.guide :as ctpu]
    [app.common.types.shape :as cts]
    [app.common.uuid :as uuid]
    [clojure.spec.alpha :as s]))
 
-;; --- Background color
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; SCHEMAS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(s/def ::background ::us/rgb-color-str)
+(sm/def! ::flow
+  [:map {:title "PageFlow"}
+   [:id ::sm/uuid]
+   [:name :string]
+   [:starting-frame ::sm/uuid]])
 
-;; --- Page options
+(sm/def! ::guide
+  [:map {:title "PageGuide"}
+   [:id ::sm/uuid]
+   [:axis [::sm/one-of #{:x :y}]]
+   [:position ::sm/safe-number]
+   [:frame-id {:optional true} [:maybe ::sm/uuid]]])
 
-(s/def ::options
-  (s/keys :opt-un [::background
-                   ::ctpg/saved-grids
-                   ::ctpf/flows
-                   ::ctpu/guides]))
+(sm/def! ::page
+  [:map {:title "FilePage"}
+   [:id ::sm/uuid]
+   [:name :string]
+   [:objects
+    [:map-of {:gen/max 5} ::sm/uuid ::cts/shape]]
+   [:options
+    [:map {:title "PageOptions"}
+     [:background {:optional true} ::ctc/rgb-color]
+     [:saved-grids {:optional true} ::ctpg/saved-grids]
+     [:flows {:optional true}
+      [:vector {:gen/max 2} ::flow]]
+     [:guides {:optional true}
+      [:vector {:gen/max 2} ::guide]]]]])
 
-;; --- Page
-
-(s/def ::id uuid?)
-(s/def ::name string?)
-(s/def ::objects (s/map-of uuid? ::cts/shape))
-
-(s/def ::page
-  (s/keys :req-un [::id ::name ::objects ::options]))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; INIT & HELPERS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; --- Initialization
 
@@ -80,6 +97,3 @@
 (defn get-frame-flow
   [flows frame-id]
   (d/seek #(= (:starting-frame %) frame-id) flows))
-
-
-

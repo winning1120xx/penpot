@@ -12,13 +12,15 @@
    [app.common.exceptions :as ex]
    [app.common.geom.shapes :as gsh]
    [app.common.math :as mth]
+   [app.common.pages.changes-spec :as pcs]
    [app.common.pages.common :refer [component-sync-attrs]]
    [app.common.pages.helpers :as cph]
+   [app.common.schema :as sm]
+   [app.common.schema.describe :as smd]
    [app.common.spec :as us]
-   [app.common.pages.changes-spec :as pcs]
+   [app.common.types.colors-list :as ctcl]
    [app.common.types.components-list :as ctkl]
    [app.common.types.container :as ctn]
-   [app.common.types.colors-list :as ctcl]
    [app.common.types.file :as ctf]
    [app.common.types.page :as ctp]
    [app.common.types.pages-list :as ctpl]
@@ -27,8 +29,203 @@
    [app.common.types.typographies-list :as ctyl]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; SCHEMAS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(sm/def! ::operation
+  [:multi {:dispatch :type :title "Operation" ::smd/simplified true}
+   [:set
+    [:map {:title "SetOperation"}
+     [:type [:= :set]]
+     [:attr :keyword]
+     [:val :any]
+     [:ignore-touched {:optional true} :boolean]
+     [:ignore-geometry {:optional true} :boolean]]]
+   [:set-touched
+    [:map {:title "SetTouchedOperation"}
+     [:type [:= :set-touched]]
+     [:touched [:maybe [:set :keyword]]]]]
+   [:set-remote-synced
+    [:map {:title "SetRemoteSyncedOperation"}
+     [:type [:= :set-remote-synced]]
+     [:remote-synced? [:maybe :boolean]]]]])
+
+(sm/def! ::change
+  [:schema
+   [:multi {:dispatch :type :title "Change" ::smd/simplified true}
+    [:set-option
+     [:map {:title "SetOptionChange"}
+      [:type [:= :set-option]]
+      [:page-id ::sm/uuid]
+      [:option [:union
+                [:keyword]
+                [:vector {:gen/max 10} :keyword]]]
+      [:value :any]]]
+
+    [:add-obj
+     [:map {:title "AddObjChange"}
+      [:type [:= :add-obj]]
+      [:id ::sm/uuid]
+      [:obj [:map-of {:gen/max 10} :keyword :any]]
+      [:page-id {:optional true} ::sm/uuid]
+      [:component-id {:optional true} ::sm/uuid]
+      [:frame-id ::sm/uuid]
+      [:parent-id ::sm/uuid]
+      [:index [:maybe :int]]
+      [:ignore-touched {:optional true} :boolean]
+      ]]
+
+    [:mod-obj
+     [:map {:title "ModObjChange"}
+      [:type [:= :mod-obj]]
+      [:id ::sm/uuid]
+      [:page-id {:optional true} ::sm/uuid]
+      [:component-id {:optional true} ::sm/uuid]
+      [:operations [:vector {:gen/max 5} ::operation]]]]
+
+    [:del-obj
+     [:map {:title "DelObjChange"}
+      [:type [:= :del-obj]]
+      [:id ::sm/uuid]
+      [:page-id {:optional true} ::sm/uuid]
+      [:component-id {:optional true} ::sm/uuid]
+      [:ignore-touched {:optional true} :boolean]]]
+
+    [:mov-objects
+     [:map {:title "MovObjectsChange"}
+      [:type [:= :mov-objects]]
+      [:page-id {:optional true} ::sm/uuid]
+      [:component-id {:optional true} ::sm/uuid]
+      [:ignore-touched {:optional true} :boolean]
+      [:parent-id ::sm/uuid]
+      [:shapes :any]
+      [:index {:optional true} :int]
+      [:after-shape {:optional true} :any]]]
+
+    [:add-page
+     [:map {:title "AddPageChange"}
+      [:type [:= :add-page]]
+      [:id ::sm/uuid]
+      [:name :string]
+      [:page :any]]]
+
+    [:mod-page
+     [:map {:title "ModPageChange"}
+      [:type [:= :mod-page]]
+      [:id ::sm/uuid]
+      [:name :string]]]
+
+    [:del-page
+     [:map {:title "DelPageChange"}
+      [:type [:= :del-page]]
+      [:id ::sm/uuid]]]
+
+    [:mov-page
+     [:map {:title "MovPageChange"}
+      [:type [:= :mov-page]]
+      [:id ::sm/uuid]
+      [:index :int]]]
+
+    [:reg-objects
+     [:map {:title "RegObjectsChange"}
+      [:type [:= :reg-objects]]
+      [:page-id {:optional true} ::sm/uuid]
+      [:component-id {:optional true} ::sm/uuid]
+      [:shapes [:vector {:gen/max 5} ::sm/uuid]]]]
+
+    [:add-color
+     [:map {:title "AddColorChange"}
+      [:type [:= :add-color]]
+      [:color :any]]]
+
+    [:mod-color
+     [:map {:title "ModColorChange"}
+      [:type [:= :mod-color]]
+      [:color :any]]]
+
+    [:del-color
+     [:map {:title "DelColorChange"}
+      [:type [:= :del-color]]
+      [:id ::sm/uuid]]]
+
+    [:add-recent-color
+     [:map {:title "AddRecentColorChange"}
+      [:type [:= :add-recent-color]]
+      [:color :any]]]
+
+    [:add-media
+     [:map {:title "AddMediaChange"}
+      [:type [:= :add-media]]
+      [:object ::ctf/media-object]]]
+
+    [:mod-media
+     [:map {:title "ModMediaChange"}
+      [:type [:= :mod-media]]
+      [:object ::ctf/media-object]]]
+
+    [:del-media
+     [:map {:title "DelMediaChange"}
+      [:type [:= :del-media]]
+      [:id ::sm/uuid]]]
+
+    [:add-component
+     [:map {:title "AddComponentChange"}
+      [:type [:= :add-component]]
+      [:id ::sm/uuid]
+      [:name :string]
+      [:shapes [:vector {:gen/max 3} :any]]
+      [:path {:optional true} :string]]]
+
+    [:mod-component
+     [:map {:title "ModCompoenentChange"}
+      [:type [:= :mod-component]]
+      [:id ::sm/uuid]
+      [:shapes {:optional true} [:vector {:gen/max 3} :any]]
+      [:name {:optional true} :string]]]
+
+    [:del-component
+     [:map {:title "DelComponentChange"}
+      [:type [:= :del-component]]
+      [:id ::sm/uuid]
+      [:skip-undelete? {:optional true} :boolean]]]
+
+    [:restore-component
+     [:map {:title "RestoreComponentChange"}
+      [:type [:= :restore-component]]
+      [:id ::sm/uuid]]]
+
+    [:purge-component
+     [:map {:title "PurgeComponentChange"}
+      [:type [:= :purge-component]]
+      [:id ::sm/uuid]]]
+
+    ;; FIXME: add impl
+    ;; [:add-typography :any]
+    ;; [:mod-typography :any]
+    ;; [:del-typography :any]
+
+    ]])
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Specific helpers
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn- without-obj
+  "Clear collection from specified obj and without nil values."
+  [coll o]
+  (into [] (filter #(not= % o)) coll))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Page Transformation Changes
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Static validators (for performance, reduces from 450µs to 4µs)
+
+(def verify-changes!
+  (sm/verify-fn [:vector ::change]))
+
+(def verify-shape!
+  (sm/verify-fn ::cts/shape))
 
 ;; Changes Processing Impl
 
@@ -36,8 +233,9 @@
   [data objects items]
   (letfn [(validate-shape! [[page-id {:keys [id] :as shape}]]
             (when-not (= shape (dm/get-in data [:pages-index page-id :objects id]))
-              ;; If object has change verify is correct
-              (us/verify ::cts/shape shape)))]
+              ;; If object has changed verify is correct
+              (verify-shape! shape)))]
+
     (let [lookup (d/getf objects)]
       (->> (into #{} (map :page-id) items)
            (mapcat (fn [page-id]
@@ -62,8 +260,8 @@
   ([data items verify?]
    ;; When verify? false we spec the schema validation. Currently used to make just
    ;; 1 validation even if the changes are applied twice
-   (when verify?
-     (us/assert ::pcs/changes items))
+   ;; FIXME
+   (when verify? (verify-changes! items))
 
    (let [result (reduce #(or (process-change %1 %2) %1) data items)]
      ;; Validate result shapes (only on the backend)
@@ -106,6 +304,7 @@
     (d/update-in-when data [:pages-index page-id] ctst/delete-shape id ignore-touched)
     (d/update-in-when data [:components component-id] ctst/delete-shape id ignore-touched)))
 
+;; FIXME: remove, seems like this method is already unused
 ;; reg-objects operation "regenerates" the geometry and selrect of the parent groups
 (defmethod process-change :reg-objects
   [data {:keys [page-id component-id shapes]}]
@@ -222,8 +421,6 @@
                 ;; are currently moving
                 (not= :frame (:type obj))
                 (as-> $$ (reduce (partial assign-frame-id frame-id) $$ (:shapes obj))))))
-
-
 
           (move-objects [objects]
             (let [valid?   (every? (partial is-valid-move? objects) shapes)
@@ -386,9 +583,8 @@
       (and shape-ref group (not ignore) (not equal?)
            (not root-name?)
            (not (and ignore-geometry is-geometry?)))
-      (->
-        (update :touched cph/set-touched-group group)
-        (dissoc :remote-synced?))
+      (-> (update :touched cph/set-touched-group group)
+          (dissoc :remote-synced? :remote-synced))
 
       (nil? val)
       (dissoc attr)
@@ -406,10 +602,12 @@
 
 (defmethod process-operation :set-remote-synced
   [shape op]
+  ;; FIXME: remove the `?` from op attr
+  ;; FIXME: remove the `?` from shape attr
   (let [remote-synced? (:remote-synced? op)
         shape-ref (:shape-ref shape)]
     (if (or (nil? shape-ref) (not remote-synced?))
-      (dissoc shape :remote-synced?)
+      (dissoc shape :remote-synced? :remote-synced)
       (assoc shape :remote-synced? true))))
 
 (defmethod process-operation :default
@@ -417,7 +615,6 @@
   (ex/raise :type :not-implemented
             :code :operation-not-implemented
             :context {:type (:type op)}))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Component changes detection

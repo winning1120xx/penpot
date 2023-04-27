@@ -7,7 +7,13 @@
 (ns app.common.types.file.media-object
   (:require
    [app.common.spec :as us]
+   [app.common.schema :as sm]
    [clojure.spec.alpha :as s]))
+
+;; FIXME: deprecated
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; SPEC
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (s/def ::id uuid?)
 (s/def ::name string?)
@@ -27,4 +33,3 @@
                    ::height
                    ::mtype]
           :opt-un [::path]))
-

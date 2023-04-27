@@ -7,6 +7,7 @@
 (ns app.common.types.shape.radius
   (:require
     [app.common.pages.common :refer [editable-attrs]]
+    [app.common.schema :as sm]
     [app.common.spec :as us]
     [clojure.spec.alpha :as s]))
 
@@ -16,6 +17,13 @@
 (s/def ::r2 ::us/safe-number)
 (s/def ::r3 ::us/safe-number)
 (s/def ::r4 ::us/safe-number)
+
+(sm/def! ::rx ::sm/safe-number)
+(sm/def! ::ry ::sm/safe-number)
+(sm/def! ::r1 ::sm/safe-number)
+(sm/def! ::r2 ::sm/safe-number)
+(sm/def! ::r3 ::sm/safe-number)
+(sm/def! ::r4 ::sm/safe-number)
 
 ;; There are some shapes that admit border radius, as rectangles
 ;; frames and images. Those shapes may define the radius of the corners in two modes:
@@ -27,8 +35,8 @@
 
 ;; A shape never will have both :rx and :r1 simultaneously
 
-;; All operations take into account that the shape may not be a one of those 
-;; shapes that has border radius, and so it hasn't :rx nor :r1. 
+;; All operations take into account that the shape may not be a one of those
+;; shapes that has border radius, and so it hasn't :rx nor :r1.
 ;; In this case operations must leave shape untouched.
 
 (defn has-radius?

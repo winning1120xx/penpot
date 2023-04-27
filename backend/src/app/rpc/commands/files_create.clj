@@ -89,6 +89,7 @@
 
 (sv/defmethod ::create-file
   {::doc/added "1.17"
+   ::doc/module :files
    ::webhooks/event? true}
   [{:keys [::db/pool] :as cfg} {:keys [::rpc/profile-id project-id] :as params}]
   (db/with-atomic [conn pool]

@@ -7,7 +7,12 @@
 (ns app.common.types.typography
   (:require
     [app.common.text :as txt]
+    [app.common.schema :as sm]
     [clojure.spec.alpha :as s]))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; SPEC
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (s/def ::id uuid?)
 (s/def ::name string?)
@@ -35,6 +40,29 @@
                    ::letter-spacing
                    ::text-transform]
           :opt-un [::path]))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; SCHEMA
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(sm/def! ::typography
+  [:map {:title "Typography"}
+   [:id ::sm/uuid]
+   [:name :string]
+   [:font-id :string]
+   [:font-family :string]
+   [:font-variant-id :string]
+   [:font-size :string]
+   [:font-weight :string]
+   [:font-style :string]
+   [:line-height :string]
+   [:letter-spacing :string]
+   [:text-transform :string]
+   [:path {:optional true} [:maybe :string]]])
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; HELPERS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn uses-library-typographies?
   "Check if the shape uses any typography in the given library."

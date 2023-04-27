@@ -9,9 +9,13 @@
   (:require
    [app.common.data :as d]
    [app.common.exceptions :as ex]
+   [app.common.pprint :as pp]
    [app.common.schema :as sm]
    [app.common.schema.describe :as smd]
+   [app.common.schema.describe2 :as smd2]
+   [app.common.schema.generators :as sg]
    [app.common.schema.openapi :as oapi]
+   [app.common.schema.registry :as sr]
    [app.config :as cf]
    [app.loggers.webhooks :as-alias webhooks]
    [app.rpc :as-alias rpc]
@@ -22,6 +26,7 @@
    [clojure.spec.alpha :as s]
    [cuerdas.core :as str]
    [integrant.core :as ig]
+   [malli.transform :as mt]
    [pretty-spec.core :as ps]
    [yetti.response :as yrs]))
 
@@ -39,13 +44,17 @@
                                          "clojure.core.specs.alpha" "score"
                                          "clojure.core" nil}}))))
 
-          (fmt-schema [mdata key]
+          (fmt-schema [type mdata key]
             (when-let [schema (get mdata key)]
-              (smd/describe (sm/schema schema))))
+              (if (= type :js)
+                (smd2/describe (sm/schema schema) {::smd2/max-level 4})
+                (-> (smd/describe (sm/schema schema))
+                    (pp/pprint-str {:level 5 :width 70})))))
 
           (get-context [mdata]
             {:name (::sv/name mdata)
-             :module (-> (:ns mdata) (str/split ".") last)
+             :module (or (some-> (::module mdata) d/name)
+                         (-> (:ns mdata) (str/split ".") last))
              :auth (:auth mdata true)
              :webhook (::webhooks/event? mdata false)
              :docs (::sv/docstring mdata)
@@ -54,11 +63,13 @@
              :changes (some->> (::changes mdata) (partition-all 2) (map vec))
              :spec (fmt-spec mdata)
              :entrypoint (str (cf/get :public-uri) "/api/rpc/commands/" (::sv/name mdata))
-             :params-schema  (fmt-schema mdata ::sm/params)
-             :result-schema (fmt-schema mdata ::sm/result)
-             :webhook-schema (fmt-schema mdata ::sm/webhook)
 
-             })]
+             :params-schema-js   (fmt-schema :js mdata ::sm/params)
+             :result-schema-js   (fmt-schema :js mdata ::sm/result)
+             :webhook-schema-js  (fmt-schema :js mdata ::sm/webhook)
+             :params-schema-clj  (fmt-schema :clj mdata ::sm/params)
+             :result-schema-clj  (fmt-schema :clj mdata ::sm/result)
+             :webhook-schema-clj (fmt-schema :clj mdata ::sm/webhook)})]
 
     {:version (:main cf/version)
      :methods
@@ -71,10 +82,13 @@
 (defn- doc-handler
   [context]
   (if (contains? cf/flags :backend-api-doc)
-    (fn [_]
-      {::yrs/status 200
-       ::yrs/body (-> (io/resource "app/templates/api-doc.tmpl")
-                      (tmpl/render context))})
+    (fn [request]
+      (let [params  (:query-params request)
+            pstyle  (:type params "js")
+            context (assoc context :param-style pstyle)]
+        {::yrs/status 200
+         ::yrs/body (-> (io/resource "app/templates/api-doc.tmpl")
+                        (tmpl/render context))}))
     (fn [_]
       {::yrs/status 404})))
 
@@ -82,22 +96,33 @@
 ;; OPENAPI / SWAGGER (v3.1)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(def output-transformer
+  (mt/transformer
+   sm/default-transformer
+   (mt/key-transformer {:encode str/camel
+                        :decode (comp keyword str/kebab)})))
+
 (defn prepare-openapi-context
   [methods]
   (letfn [(gen-response-doc [tsx schema]
-            {:default
-             {:description "A default response"
-              :content
-              {"application/json"
-               {:schema tsx
-                :example (sm/generate schema)}}}})
+            (let [schema  (sm/schema schema)
+                  example (sm/generate schema)
+                  example (sm/encode schema example output-transformer)]
+              {:default
+               {:description "A default response"
+                :content
+                {"application/json"
+                 {:schema tsx
+                  :example example}}}}))
 
           (gen-params-doc [tsx schema]
-            {:required true
-             :content
-             {"application/json"
-              {:schema tsx
-               :example (sm/generate schema)}}})
+            (let [example (sm/generate schema)
+                  example (sm/encode schema example output-transformer)]
+              {:required true
+               :content
+               {"application/json"
+                {:schema tsx
+                 :example example}}}))
 
           (gen-method-doc [options mdata]
             (let [pschema (::sm/params mdata)
@@ -120,12 +145,12 @@
           ]
 
     (let [definitions (atom {})
-          options {:registry sm/default-registry
+          options {:registry sr/default-registry
                    ::oapi/definitions-path "#/components/schemas/"
                    ::oapi/definitions definitions}
 
           paths   (binding [oapi/*definitions* definitions]
-                    (->> (:commands methods)
+                    (->> methods
                          (map (comp first val))
                          (filter ::sm/params)
                          (map (partial gen-method-doc options))
@@ -159,8 +184,8 @@
   []
   (if (contains? cf/flags :backend-openapi-doc)
     (fn [_]
-      (let [swagger-js (slurp (io/resource "app/assets/swagger-ui-4.18.0.js"))
-            swagger-cs (slurp (io/resource "app/assets/swagger-ui-4.18.0.css"))
+      (let [swagger-js (slurp (io/resource "app/assets/swagger-ui-4.18.3.js"))
+            swagger-cs (slurp (io/resource "app/assets/swagger-ui-4.18.3.css"))
             context    {:public-uri (cf/get :public-uri)
                         :swagger-js swagger-js
                         :swagger-css swagger-cs}]
@@ -183,9 +208,12 @@
 (defmethod ig/init-key ::routes
   [_ {:keys [methods] :as cfg}]
   [(let [context (prepare-doc-context methods)]
-     ["/_doc"
-      {:handler (doc-handler context)
-       :allowed-methods #{:get}}])
+     [["/_doc"
+       {:handler (doc-handler context)
+        :allowed-methods #{:get}}]
+      ["/doc"
+       {:handler (doc-handler context)
+        :allowed-methods #{:get}}]])
 
    (let [context (prepare-openapi-context methods)]
      [["/openapi"

@@ -6,8 +6,13 @@
 
 (ns app.common.types.page.guide
   (:require
+   [app.common.schema :as sm]
    [app.common.spec :as us]
    [clojure.spec.alpha :as s]))
+;; FIXME: deprecated
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; SPECS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; --- Page guides
 
@@ -24,4 +29,3 @@
 
 (s/def ::guides
   (s/map-of uuid? ::guide))
-

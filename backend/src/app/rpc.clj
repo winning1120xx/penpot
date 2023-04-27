@@ -159,7 +159,7 @@
     (let [schema  (sm/schema schema)
           valid?  (sm/validator schema)
           explain (sm/explainer schema)
-          decode  (sm/decoder schema sm/input-transformer)]
+          decode  (sm/decoder schema sm/default-transformer)]
 
       (fn [cfg params]
         (let [params (decode params)]

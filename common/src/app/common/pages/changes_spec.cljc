@@ -15,6 +15,8 @@
    [app.common.uuid :as uuid]
    [clojure.spec.alpha :as s]))
 
+;; FIXME: DEPRECATED (to be removed)
+
 (s/def ::index integer?)
 (s/def ::id uuid?)
 (s/def ::parent-id uuid?)

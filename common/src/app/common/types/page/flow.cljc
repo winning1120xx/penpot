@@ -6,7 +6,13 @@
 
 (ns app.common.types.page.flow
   (:require
+   [app.common.schema :as sm]
    [clojure.spec.alpha :as s]))
+
+;; FIXME: deprecated
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; SPECS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; --- Interaction Flows
 
@@ -21,4 +27,3 @@
 
 (s/def ::flows
   (s/coll-of ::flow :kind vector?))
-

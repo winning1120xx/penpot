@@ -8,8 +8,9 @@
   (:require
    [clojure.set :as set]
    [cuerdas.core :as str]
-   [malli.core :as m]))
-
+   [malli.core :as m]
+   [malli.transform :as mt]
+   [malli.util :as mu]))
 
 (def ^:dynamic *definitions* nil)
 
@@ -73,11 +74,13 @@
    :maxProperties))
 
 (defmethod visit :vector [_ schema children _]
-  (minmax-properties
-   {:type "array", :items (first children)}
-   schema
-   :minItems
-   :maxItems))
+  (let [child (-> schema m/children first)
+        props (m/properties (m/deref child))]
+    (minmax-properties
+     {:type "array", :items (first children) :title (:title props)}
+     schema
+     :minItems
+     :maxItems)))
 
 (defmethod visit :sequential [_ schema children _]
   (minmax-properties

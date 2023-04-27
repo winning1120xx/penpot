@@ -13,6 +13,7 @@
    [app.common.pages.helpers :as cph]
    [app.common.pages.migrations :as pmg]
    [app.common.schema :as sm]
+   [app.common.schema.describe2 :as-alias smd2]
    [app.common.spec :as us]
    [app.common.types.components-list :as ctkl]
    [app.common.types.file :as ctf]
@@ -262,6 +263,7 @@
 
 (sm/def! ::features
   [:schema {:title "FileFeatures"
+            ::smd2/inline true
             :gen/gen (sm/gen-set-from-choices ["storage/pointer-map"
                                                "storage/objects-map"
                                                "components/v2"])}
@@ -281,12 +283,14 @@
    [:created-at ::dt/instant]
    [:data {:optional true} :any]])
 
-(sm/def! ::file-with-permissions
-  [:merge {:title "FileWithPermissions2"}
-   ::file
-   [:map {:title "FileWithPermissions"}
-    [:permissions ::perms/permissions]]])
+(sm/def! ::permissions-mixin
+  [:map {:title "PermissionsMixin"}
+   [:permissions ::perms/permissions]])
 
+(sm/def! ::file-with-permissions
+  [:merge {:title "FileWithPermissions"}
+   ::file
+   ::permissions-mixin])
 
 (sm/def! ::get-file
   [:map {:title "get-file"}

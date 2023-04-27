@@ -16,8 +16,11 @@
    [app.common.exceptions :as ex]
    [app.common.math :as mth]
    [app.common.spec :as us]
-   [clojure.spec.alpha :as s]
-   [clojure.test.check.generators :as tgen]))
+   [app.common.schema :as sm]
+   [app.common.schema.generators :as sg]
+   [app.common.schema.openapi :as-alias oapi]
+   [cuerdas.core :as str]
+   [clojure.spec.alpha :as s]))
 
 ;; --- Point Impl
 
@@ -38,9 +41,40 @@
 (s/def ::point-attrs
   (s/keys :req-un [::x ::y]))
 
+(sm/def! ::point-map
+  [:map {:title "PointMap"}
+   [:x ::sm/safe-number]
+   [:y ::sm/safe-number]])
+
+(sm/def! ::point
+  (letfn [(decode [p]
+            (if (map? p)
+              (map->Point p)
+              (if (string? p)
+                (let [[x y] (->> (str/split p #",") (mapv parse-double))]
+                  (Point. x y))
+                p)))
+
+          (encode [p]
+            (dm/str (dm/get-prop p :x) ","
+                    (dm/get-prop p :y)))]
+
+    {:type ::point
+     :pred point?
+     :type-properties
+     {:title "point"
+      :description "Point"
+      :error/message "expected a valid point"
+      :gen/gen (->> (sg/tuple (sg/small-int) (sg/small-int))
+                    (sg/fmap #(apply ->Point %)))
+      ::oapi/type "string"
+      ::oapi/format "point"
+      ::oapi/decode decode
+      ::oapi/encode encode}}))
+
 (s/def ::point
   (s/with-gen (s/and ::point-attrs point?)
-    #(tgen/fmap map->Point (s/gen ::point-attrs))))
+    #(sg/fmap map->Point (s/gen ::point-attrs))))
 
 (defn point-like?
   [{:keys [x y] :as v}]

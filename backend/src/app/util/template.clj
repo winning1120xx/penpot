@@ -7,9 +7,11 @@
 (ns app.util.template
   (:require
    [app.common.exceptions :as ex]
-   [selmer.parser :as sp]))
+   [cuerdas.core :as str]
+   [selmer.parser :as sp]
+   [selmer.util :as su]))
 
-;; (sp/cache-off!)
+(sp/cache-off!)
 
 (defn render
   [path context]

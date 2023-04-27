@@ -11,10 +11,12 @@
    [app.common.data :as d]
    [app.common.data.macros :as dm]
    [app.common.geom.point :as gpt]
+   [app.common.schema.generators :as sg]
+   [app.common.schema.openapi :as-alias oapi]
+   [app.common.schema :as sm]
    [app.common.math :as mth]
    [app.common.spec :as us]
-   [clojure.spec.alpha :as s]
-   [clojure.test.check.generators :as tgen]))
+   [clojure.spec.alpha :as s]))
 
 (def precision 6)
 
@@ -60,7 +62,7 @@
 (s/def ::matrix
   (s/with-gen
     (s/and ::matrix-attrs matrix?)
-    #(tgen/fmap map->Matrix (s/gen ::matrix-attrs))))
+    #(sg/fmap map->Matrix (s/gen ::matrix-attrs))))
 
 (def number-regex #"[+-]?\d*(\.\d+)?(e[+-]?\d+)?")
 
@@ -70,6 +72,48 @@
                     (filter #(-> % first seq))
                     (map (comp d/parse-double first)))]
     (apply matrix params)))
+
+(sm/def! ::matrix-map
+  [:map {:title "MatrixMap"}
+   [:a ::sm/safe-double]
+   [:b ::sm/safe-double]
+   [:c ::sm/safe-double]
+   [:d ::sm/safe-double]
+   [:e ::sm/safe-double]
+   [:f ::sm/safe-double]])
+
+(sm/def! ::matrix
+  (letfn [(decode [o]
+            (if (map? o)
+              (map->Matrix o)
+              (if (string? o)
+                (str->matrix o)
+                o)))
+          (encode [o]
+            (dm/str (dm/get-prop o :a) ","
+                    (dm/get-prop o :b) ","
+                    (dm/get-prop o :c) ","
+                    (dm/get-prop o :d) ","
+                    (dm/get-prop o :e) ","
+                    (dm/get-prop o :f) ","))]
+
+    {:type ::matrix
+     :pred matrix?
+     :type-properties
+     {:title "matrix"
+      :description "Matrix instance"
+      :error/message "expected a valid point"
+      :gen/gen (->> (sg/tuple (sg/small-double)
+                              (sg/small-double)
+                              (sg/small-double)
+                              (sg/small-double)
+                              (sg/small-double)
+                              (sg/small-double) )
+                    (sg/fmap #(apply ->Matrix %)))
+      ::oapi/type "string"
+      ::oapi/format "matrix"
+      ::oapi/decode decode
+      ::oapi/encode encode}}))
 
 (defn close?
   [^Matrix m1 ^Matrix m2]

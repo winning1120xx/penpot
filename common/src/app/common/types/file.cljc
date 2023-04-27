@@ -13,6 +13,7 @@
    [app.common.geom.shapes :as gsh]
    [app.common.pages.common :refer [file-version]]
    [app.common.pages.helpers :as cph]
+   [app.common.schema :as sm]
    [app.common.types.color :as ctc]
    [app.common.types.colors-list :as ctcl]
    [app.common.types.component :as ctk]
@@ -25,42 +26,41 @@
    [app.common.types.typographies-list :as ctyl]
    [app.common.types.typography :as cty]
    [app.common.uuid :as uuid]
-   [clojure.spec.alpha :as s]
    [cuerdas.core :as str]))
 
-;; Specs
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; SCHEMA
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(s/def ::colors
-  (s/map-of uuid? ::ctc/color))
+(sm/def! ::media-object
+  [:map {:title "FileMediaObject"}
+   [:id ::sm/uuid]
+   [:name :string]
+   [:width ::sm/safe-int]
+   [:height ::sm/safe-int]
+   [:mtype :string]
+   [:path {:optional true} [:maybe :string]]])
 
-(s/def ::recent-colors
-  (s/coll-of ::ctc/recent-color :kind vector?))
+(sm/def! ::data
+  [:map {:title "FileData"}
+   [:pages [:vector ::sm/uuid]]
+   [:pages-index
+    [:map-of {:gen/max 5} ::sm/uuid ::ctp/page]]
+   [:colors {:optional true}
+    [:map-of {:gen/max 5} ::sm/uuid ::ctc/color]]
+   [:components {:optional true}
+    [:map-of {:gen/max 5} ::sm/uuid ::ctn/container]]
+   [:recent-colors {:optional true}
+    [:vector {:gen/max 3} ::ctc/recent-color]]
+   [:typographies {:optional true}
+    [:map-of {:gen/max 2} ::sm/uuid ::cty/typography]]
+   [:media {:optional true}
+    [:map-of {:gen/max 5} ::sm/uuid ::media-object]]
+   ])
 
-(s/def ::typographies
-  (s/map-of uuid? ::cty/typography))
-
-(s/def ::pages
-  (s/coll-of uuid? :kind vector?))
-
-(s/def ::media
-  (s/map-of uuid? ::ctfm/media-object))
-
-(s/def ::pages-index
-  (s/map-of uuid? ::ctp/page))
-
-(s/def ::components
-  (s/map-of uuid? ::ctn/container))
-
-(s/def ::data
-  (s/keys :req-un [::pages-index
-                   ::pages]
-          :opt-un [::colors
-                   ::components
-                   ::recent-colors
-                   ::typographies
-                   ::media]))
-
-;; Initialization
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; INITIALIZATION
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def empty-file-data
   {:version file-version
@@ -413,6 +413,7 @@
                         (some? (:component-file %))
                         (assoc :component-file (:id file-data)))
                      main-instance-shapes)
+
                 ; Add all shapes of the main instance to the library page
                 add-main-instance-shapes
                 (fn [page]
