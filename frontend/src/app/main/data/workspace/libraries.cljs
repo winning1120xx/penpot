@@ -7,6 +7,7 @@
 (ns app.main.data.workspace.libraries
   (:require
    [app.common.data :as d]
+   [app.common.data.macros :as dm]
    [app.common.files.features :as ffeat]
    [app.common.geom.point :as gpt]
    [app.common.logging :as log]
@@ -26,7 +27,7 @@
    [app.common.uuid :as uuid]
    [app.main.data.dashboard :as dd]
    [app.main.data.events :as ev]
-   [app.main.data.messages :as dm]
+   [app.main.data.messages :as msg]
    [app.main.data.workspace.changes :as dch]
    [app.main.data.workspace.groups :as dwg]
    [app.main.data.workspace.libraries-helpers :as dwlh]
@@ -48,7 +49,8 @@
 ;; Change this to :info :debug or :trace to debug this module, or :warn to reset to default
 (log/set-level! :warn)
 
-(s/def ::file ::dd/file)
+;; FIXME: spec -> schema
+;; (s/def ::file ::dd/file)
 
 (defn- log-changes
   [changes file]
@@ -238,7 +240,7 @@
   ([typography] (add-typography typography true))
   ([typography edit?]
    (let [typography (update typography :id #(or % (uuid/next)))]
-     (us/assert ::ctt/typography typography)
+     (dm/assert! (ctt/typography? typography))
      (ptk/reify ::add-typography
        IDeref
        (-deref [_] typography)
@@ -267,8 +269,9 @@
 
 (defn update-typography
   [typography file-id]
-  (us/assert ::ctt/typography typography)
-  (us/assert ::us/uuid file-id)
+  (dm/assert! (ctt/typography? typography))
+  (dm/assert! (uuid? file-id))
+
   (ptk/reify ::update-typography
     ptk/WatchEvent
     (watch [it state _]
@@ -528,7 +531,7 @@
 
 (defn nav-to-component-file
   [file-id]
-  (us/assert ::us/uuid file-id)
+  (dm/assert! (uuid? file-id))
   (ptk/reify ::nav-to-component-file
     ptk/WatchEvent
     (watch [_ state _]
@@ -543,8 +546,8 @@
 
 (defn ext-library-changed
   [file-id modified-at revn changes]
-  (us/assert ::us/uuid file-id)
-  (us/assert ::pcs/changes changes)
+  (dm/assert! (uuid? file-id))
+  (dm/assert! (ch/changes? changes))
   (ptk/reify ::ext-library-changed
     ptk/UpdateEvent
     (update [_ state]
@@ -559,7 +562,7 @@
   the current page. Set all attributes equal to the ones in the linked component,
   and untouched."
   [id]
-  (us/assert ::us/uuid id)
+  (dm/assert! (uuid? id))
   (ptk/reify ::reset-component
     ptk/WatchEvent
     (watch [it state _]
@@ -595,7 +598,7 @@
   different of that the one we are currently editing."
   ([id] (update-component id nil))
   ([id undo-group]
-   (us/assert ::us/uuid id)
+   (dm/assert! (uuid? id))
    (ptk/reify ::update-component
      ptk/WatchEvent
      (watch [it state _]
@@ -748,7 +751,7 @@
                                                               (:redo-changes changes)
                                                               file))
            (rx/concat
-            (rx/of (dm/hide-tag :sync-dialog))
+            (rx/of (msg/hide-tag :sync-dialog))
             (when (seq (:redo-changes changes))
               (rx/of (dch/commit-changes (assoc changes ;; TODO a ver qué pasa con esto
                                                 :file-id file-id))))
@@ -824,11 +827,11 @@
                                                   (sync-file (:current-file-id state)
                                                              (:id library)))
                                                 libraries-need-sync))
-                           (st/emit! dm/hide))
+                           (st/emit! msg/hide))
             do-dismiss #(do (st/emit! ignore-sync)
-                            (st/emit! dm/hide))]
+                            (st/emit! msg/hide))]
 
-        (rx/of (dm/info-dialog
+        (rx/of (msg/info-dialog
                 (tr "workspace.updates.there-are-updates")
                 :inline-actions
                 [{:label (tr "workspace.updates.update")
@@ -905,7 +908,7 @@
 
 (defn- shared-files-fetched
   [files]
-  (us/verify (s/every ::file) files)
+  ;; (us/verify! (s/every ::file) files)
   (ptk/reify ::shared-files-fetched
     ptk/UpdateEvent
     (update [_ state]
@@ -914,7 +917,7 @@
 
 (defn fetch-shared-files
   [{:keys [team-id] :as params}]
-  (us/assert ::us/uuid team-id)
+  (dm/assert! (uuid? team-id))
   (ptk/reify ::fetch-shared-files
     ptk/WatchEvent
     (watch [_ _ _]

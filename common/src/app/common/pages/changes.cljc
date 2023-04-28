@@ -16,7 +16,7 @@
    [app.common.pages.common :refer [component-sync-attrs]]
    [app.common.pages.helpers :as cph]
    [app.common.schema :as sm]
-   [app.common.schema.describe :as smd]
+   [app.common.schema.desc-native :as smd]
    [app.common.spec :as us]
    [app.common.types.colors-list :as ctcl]
    [app.common.types.components-list :as ctkl]
@@ -208,6 +208,9 @@
 
 (def change?
   (sm/pred-fn ::change))
+
+(def changes?
+  (sm/pred-fn [:vector ::change]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Specific helpers

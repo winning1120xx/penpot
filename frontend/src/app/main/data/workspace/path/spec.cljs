@@ -8,6 +8,7 @@
   (:require
    [clojure.spec.alpha :as s]))
 
+;; FIXME: translate to schema
 ;; SCHEMAS
 
 (s/def ::command #{:move-to

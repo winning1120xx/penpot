@@ -7,6 +7,7 @@
 (ns app.main.data.workspace.interactions
   (:require
    [app.common.data :as d]
+   [app.common.data.macros :as dm]
    [app.common.geom.point :as gpt]
    [app.common.pages :as cp]
    [app.common.pages.changes-builder :as pcb]
@@ -55,7 +56,7 @@
 
 (defn remove-flow
   [flow-id]
-  (us/verify ::us/uuid flow-id)
+  (dm/assert! (uuid? flow-id))
   (ptk/reify ::remove-flow
     ptk/WatchEvent
     (watch [it state _]
@@ -67,8 +68,8 @@
 
 (defn rename-flow
   [flow-id name]
-  (us/verify ::us/uuid flow-id)
-  (us/verify ::us/string name)
+  (dm/assert! (uuid? flow-id))
+  (dm/assert! (string? name))
   (ptk/reify ::rename-flow
     ptk/WatchEvent
     (watch [it state _]
@@ -81,7 +82,7 @@
 
 (defn start-rename-flow
   [id]
-  (us/verify ::us/uuid id)
+  (dm/assert! (uuid? id))
   (ptk/reify ::start-rename-flow
     ptk/UpdateEvent
     (update [_ state]

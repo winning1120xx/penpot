@@ -165,7 +165,6 @@
         (let [params (decode params)]
           (if (valid? params)
             (f cfg params)
-
             (ex/raise :type :validation
                       :code :params-validation
                       ::sm/explain (explain params))))))

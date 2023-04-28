@@ -19,8 +19,8 @@
 (defn generate-path-changes
   "Generates changes to update the new content of the shape"
   [it objects page-id shape old-content new-content]
-  (us/verify ::spec/content old-content)
-  (us/verify ::spec/content new-content)
+  (us/verify! ::spec/content old-content)
+  (us/verify! ::spec/content new-content)
   (let [shape-id (:id shape)
 
         [old-points old-selrect]

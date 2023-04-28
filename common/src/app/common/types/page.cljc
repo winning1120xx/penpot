@@ -12,8 +12,6 @@
    [app.common.spec :as us]
    [app.common.types.color :as-alias ctc]
    [app.common.types.grid :as-alias ctpg]
-   [app.common.types.page.flow :as ctpf]
-   [app.common.types.page.guide :as ctpu]
    [app.common.types.shape :as cts]
    [app.common.uuid :as uuid]
    [clojure.spec.alpha :as s]))
@@ -28,12 +26,18 @@
    [:name :string]
    [:starting-frame ::sm/uuid]])
 
+(def flow?
+  (sm/pred-fn ::flow))
+
 (sm/def! ::guide
   [:map {:title "PageGuide"}
    [:id ::sm/uuid]
    [:axis [::sm/one-of #{:x :y}]]
    [:position ::sm/safe-number]
    [:frame-id {:optional true} [:maybe ::sm/uuid]]])
+
+(def guide?
+  (sm/pred-fn ::guide))
 
 (sm/def! ::page
   [:map {:title "FilePage"}

@@ -35,7 +35,7 @@
 
 (mf/defc project-menu
   [{:keys [project show? on-edit on-menu-close top left on-import] :as props}]
-  (us/verify ::project-menu props)
+  (us/assert! ::project-menu props)
   (let [top  (or top 0)
         left (or left 0)
 

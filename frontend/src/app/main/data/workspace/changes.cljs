@@ -7,10 +7,11 @@
 (ns app.main.data.workspace.changes
   (:require
    [app.common.data :as d]
+   [app.common.data.macros :as dm]
    [app.common.logging :as log]
    [app.common.pages :as cp]
+   [app.common.pages.changes :as cpc]
    [app.common.pages.changes-builder :as pcb]
-   [app.common.pages.changes-spec :as pcs]
    [app.common.pages.helpers :as cph]
    [app.common.spec :as us]
    [app.common.types.shape-tree :as ctst]
@@ -204,8 +205,10 @@
                                 [:workspace-data]
                                 [:workspace-libraries file-id :data])]
           (try
-            (us/assert ::pcs/changes redo-changes)
-            (us/assert ::pcs/changes undo-changes)
+            (dm/assert!
+             "expect valid vector of changes"
+             (and (cpc/changes? redo-changes)
+                  (cpc/changes? undo-changes)))
 
             (update-in state path (fn [file]
                                     (-> file

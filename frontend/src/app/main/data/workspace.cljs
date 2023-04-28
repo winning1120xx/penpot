@@ -464,8 +464,8 @@
 
 (defn rename-page
   [id name]
-  (us/verify ::us/uuid id)
-  (us/verify string? name)
+  (dm/assert! (uuid? id))
+  (dm/assert! (string? name))
   (ptk/reify ::rename-page
     ptk/WatchEvent
     (watch [it state _]
@@ -566,8 +566,8 @@
 
 (defn update-shape
   [id attrs]
-  (us/verify ::us/uuid id)
-  (us/verify ::cts/shape-attrs attrs)
+  (dm/assert! (uuid? id))
+  ;; (us/verify ::cts/shape-attrs attrs)
   (ptk/reify ::update-shape
     ptk/WatchEvent
     (watch [_ _ _]
@@ -576,7 +576,7 @@
 
 (defn start-rename-shape
   [id]
-  (us/verify ::us/uuid id)
+  (dm/assert! (uuid? id))
   (ptk/reify ::start-rename-shape
     ptk/UpdateEvent
     (update [_ state]
@@ -593,7 +593,7 @@
 
 (defn update-selected-shapes
   [attrs]
-  (us/verify ::cts/shape-attrs attrs)
+  ;; (us/verify ::cts/shape-attrs attrs)
   (ptk/reify ::update-selected-shapes
     ptk/WatchEvent
     (watch [_ state _]
@@ -620,11 +620,14 @@
 
 ;; --- Shape Vertical Ordering
 
-(s/def ::loc  #{:up :down :bottom :top})
+(def valid-vertical-locations
+  #{:up :down :bottom :top})
 
 (defn vertical-order-selected
   [loc]
-  (us/verify ::loc loc)
+  (dm/assert!
+   "expected valid location"
+   (contains? valid-vertical-locations loc))
   (ptk/reify ::vertical-order-selected
     ptk/WatchEvent
     (watch [it state _]
@@ -745,9 +748,9 @@
 
 (defn relocate-shapes
   [ids parent-id to-index & [ignore-parents?]]
-  (us/verify (s/coll-of ::us/uuid) ids)
-  (us/verify ::us/uuid parent-id)
-  (us/verify number? to-index)
+  (dm/assert! (every? uuid? ids))
+  (dm/assert! (uuid? parent-id))
+  (dm/assert! (number? to-index))
 
   (ptk/reify ::relocate-shapes
     ptk/WatchEvent
@@ -934,7 +937,7 @@
 
 (defn align-objects
   [axis]
-  (us/verify ::gal/align-axis axis)
+  ;; (us/verify ::gal/align-axis axis)
   (ptk/reify ::align-objects
     ptk/WatchEvent
     (watch [_ state _]
@@ -975,7 +978,7 @@
 
 (defn distribute-objects
   [axis]
-  (us/verify ::gal/dist-axis axis)
+  ;; (us/verify ::gal/dist-axis axis)
   (ptk/reify ::distribute-objects
     ptk/WatchEvent
     (watch [_ state _]
@@ -1066,7 +1069,7 @@
 
 (defn go-to-layout
   [layout]
-  (us/verify ::layout/flag layout)
+  ;; (us/verify ::layout/flag layout)
   (ptk/reify ::go-to-layout
     IDeref
     (-deref [_] {:layout layout})
@@ -1119,8 +1122,8 @@
                                                             :typographies #{}}))))
 (defn go-to-main-instance
   [page-id shape-id]
-  (us/verify ::us/uuid page-id)
-  (us/verify ::us/uuid shape-id)
+  (dm/assert! (uuid? page-id))
+  (dm/assert! (uuid? shape-id))
   (ptk/reify ::go-to-main-instance
     ptk/WatchEvent
     (watch [_ state stream]
@@ -1242,12 +1245,9 @@
 ;; Context Menu
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(s/def ::point gpt/point?)
-
-
 (defn show-context-menu
   [{:keys [position] :as params}]
-  (us/verify ::point position)
+  (dm/assert! (gpt/point? position))
   (ptk/reify ::show-context-menu
     ptk/UpdateEvent
     (update [_ state]
@@ -1280,7 +1280,7 @@
 
 (defn show-page-item-context-menu
   [{:keys [position page] :as params}]
-  (us/verify ::point position)
+  (dm/assert! (gpt/point? position))
   (ptk/reify ::show-page-item-context-menu
     ptk/WatchEvent
     (watch [_ _ _]

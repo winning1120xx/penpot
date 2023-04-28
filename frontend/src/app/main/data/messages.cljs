@@ -43,7 +43,7 @@
 
 (defn show
   [data]
-  (us/verify ::message data)
+  (us/assert! ::message data)
   (ptk/reify ::show
     ptk/UpdateEvent
     (update [_ state]

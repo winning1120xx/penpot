@@ -262,11 +262,13 @@
 ;; --- COMMAND QUERY: get-file (by id)
 
 (sm/def! ::features
-  [:schema {:title "FileFeatures"
-            ::smdj/inline true
-            :gen/gen (sm/gen-set-from-choices ["storage/pointer-map"
-                                               "storage/objects-map"
-                                               "components/v2"])}
+  [:schema
+   {:title "FileFeatures"
+    ::smdj/inline true
+    ;; FIXME: revisit this
+    :gen/gen (sm/gen-set-from-choices ["storage/pointer-map"
+                                       "storage/objects-map"
+                                       "components/v2"])}
    ::sm/set-of-strings])
 
 (sm/def! ::file
@@ -433,12 +435,6 @@
 
 (declare get-has-file-libraries)
 
-(s/def ::file-id ::us/uuid)
-
-(s/def ::has-file-libraries
-  (s/keys :req [::rpc/profile-id]
-          :req-un [::file-id]))
-
 (sv/defmethod ::has-file-libraries
   "Checks if the file has libraries. Returns a boolean"
   {::doc/added "1.15.1"
@@ -489,17 +485,24 @@
       (uuid? object-id)
       (prune-objects object-id))))
 
-(s/def ::page-id ::us/uuid)
-(s/def ::object-id ::us/uuid)
-(s/def ::get-page
-  (s/and
-   (s/keys :req [::rpc/profile-id]
-           :req-un [::file-id]
-           :opt-un [::page-id ::object-id ::features])
-   (fn [obj]
-     (if (contains? obj :object-id)
-       (contains? obj :page-id)
-       true))))
+;; (s/def ::page-id ::us/uuid)
+;; (s/def ::object-id ::us/uuid)
+;; (s/def ::get-page
+;;   (s/and
+;;    (s/keys :req [::rpc/profile-id]
+;;            :req-un [::file-id]
+;;            :opt-un [::page-id ::object-id ::features])
+;;    (fn [obj]
+;;      (if (contains? obj :object-id)
+;;        (contains? obj :page-id)
+;;        true))))
+
+(sm/def! ::get-page
+  [:map {:title "GetPage"}
+   [:page-id {:optional true} ::sm/uuid]
+   [:object-id {:optional true} ::sm/uuid]
+   [:features {:optional true} ::features]])
+
 
 (sv/defmethod ::get-page
   "Retrieves the page data from file and returns it. If no page-id is
@@ -511,7 +514,8 @@
   mandatory.
 
   Mainly used for rendering purposes."
-  {::doc/added "1.17"}
+  {::doc/added "1.17"
+   ::sm/params ::get-page}
   [{:keys [::db/pool] :as cfg} {:keys [::rpc/profile-id file-id] :as params}]
   (dm/with-open [conn (db/open pool)]
     (check-read-permissions! conn profile-id file-id)
@@ -829,6 +833,7 @@
           ;; for avoid transfer unnecessary data.
           :always
           (update :objects assoc-thumbnails page-id thumbs))))))
+
 
 (sv/defmethod ::get-file-data-for-thumbnail
   "Retrieves the data for generate the thumbnail of the file. Used

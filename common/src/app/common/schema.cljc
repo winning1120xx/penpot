@@ -6,7 +6,7 @@
 
 (ns app.common.schema
   (:refer-clojure :exclude [deref merge])
-  #?(:cljs (:require-macros [app.common.schema :refer [ignoring pred-fn]]))
+  #?(:cljs (:require-macros [app.common.schema :refer [ignoring]]))
   (:require
    [app.common.data :as d]
    [app.common.data.macros :as dm]
@@ -78,11 +78,14 @@
   (let [default-decoder
         {:compile (fn [s _registry]
                     (let [props (m/type-properties s)]
-                      (::oapi/decode props)))}
+                      (or (::oapi/decode props)
+                          (::decode props))))}
+
         default-encoder
         {:compile (fn [s _]
                     (let [props (m/type-properties s)]
-                      (::oapi/encode props)))}
+                      (or (::oapi/encode props)
+                          (::encode props))))}
 
         coders {:vector mt/-sequential-or-set->vector
                 :sequential mt/-sequential-or-set->seq
@@ -110,15 +113,15 @@
   [s]
   (-> s schema m/explainer))
 
-(defmacro lazy-validator
+(defn lazy-validator
   [s]
-  `(let [vfn# (delay (validator ~s))]
-     (fn [v#] (@vfn# v#))))
+  `(let [vfn (delay (validator s))]
+     (fn [v] (@vfn v))))
 
-(defmacro lazy-explainer
+(defn lazy-explainer
   [s]
-  `(let [vfn# (delay (explainer ~s))]
-     (fn [v#] (@vfn# v#))))
+  (let [vfn (delay (explainer s))]
+    (fn [v] (@vfn v))))
 
 (defn encode
   ([s val transformer]
@@ -211,53 +214,28 @@
                       ::explain exp#}]
            (throw (ex-info h# (into data# c#))))))))
 
-(defmacro assert-fn
-  [s]
-  (if *assert*
-    `(let [s#    (schema ~s)
-           v-fn# (lazy-validator s#)
-           e-fn# (lazy-explainer s#)]
-       (fn [v#]
-         (when-not (v-fn# v#)
-           (let [hint# ~(str "schema assert: " (pr-str s))
-                 exp#  (e-fn# v#)]
-             (throw (ex-info hint#
-                             {:type :assertion
-                              :code :data-validation
-                              :hint hint#
-                              ::explain exp#}))))))
-    `(constantly nil)))
-
-(defmacro verify-fn
-  [s]
-  (binding [*assert* true]
-    `(assert-fn ~s)))
-
-(def ^:dynamic *context* nil)
-
-(defmacro pred-fn
-  [s]
-  (let [result-sym (with-meta (gensym "result") {:tag 'boolean})]
-    `(let [s#    (schema ~s)
-           v-fn# (lazy-validator s#)
-           e-fn# (lazy-explainer s#)]
-       (fn [v#]
-         (let [~result-sym (v-fn# v#)]
-           (when (and (not ~result-sym) (true? dm/*assert-context*))
-             (let [hint# ~(str "schema assert: " (pr-str s))
-                   exp#  (e-fn# v#)]
-             (throw (ex-info hint# {:type :assertion
-                                    :code :data-validation
-                                    :hint hint#
-                                    ::explain exp#}))))
-         ~result-sym)))))
-
 (defmacro verify!
   "A variant of `assert!` macro that evaluates always, independently
   of the *assert* value."
   [& params]
   (binding [*assert* true]
     `(assert! ~@params)))
+
+(defn pred-fn
+  [s]
+  (let [s    (schema s)
+        v-fn (lazy-validator s)
+        e-fn (lazy-explainer s)]
+    (fn [v]
+      (let [result (v-fn v)]
+        (when (and (not result) (true? dm/*assert-context*))
+          (let [hint (str "schema assert: " (pr-str s))
+                exp  (e-fn v)]
+            (throw (ex-info hint {:type :assertion
+                                  :code :data-validation
+                                  :hint hint
+                                  ::explain exp}))))
+         result))))
 
 (defn register! [type s]
   (let [s (if (map? s) (simple-schema s) s)]
@@ -296,7 +274,24 @@
     :gen/gen (sg/uuid)
     ::oapi/type "string"
     ::oapi/format "uuid"
-    ::decode #(uuid/uuid (re-matches uuid-rx %))}})
+    ::oapi/decode #(uuid/uuid (re-matches uuid-rx %))}})
+
+(def email-re #"[a-zA-Z0-9_.+-\\\\]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+")
+
+(defn parse-email
+  [s]
+  (some->> s (re-seq email-re) first))
+
+;; FIXME: add proper email generator
+(def! ::email
+  {:type ::email
+   :type-properties
+   {:title "email"
+    :description "string with valid email address"
+    :error/message "expected valid email"
+    ::oapi/type "string"
+    ::oapi/format "email"
+    ::oapi/decode parse-email}})
 
 (def non-empty-strings-xf
   (comp
@@ -319,8 +314,21 @@
     ::decode (fn [v]
                (into #{} non-empty-strings-xf (str/split v #"[\s,]+")))}})
 
-(def set-of-strings?
-  (pred-fn ::set-of-strings))
+
+(def! ::set-of-emails
+  {:type ::set-of-strings
+   :pred #(and (set? %) (every? string? %))
+   :type-properties
+   {:title "set[email]"
+    :description "Set of Emails"
+    :error/message "should be an set of emails"
+    :gen/gen (-> ::email sg/generator sg/set)
+    ::oapi/type "array"
+    ::oapi/format "set"
+    ::oapi/items {:type "string" :format "email"}
+    ::oapi/unique-items true
+    ::decode (fn [v]
+               (into #{} (map parse-email) (str/split v #"[\s,]+")))}})
 
 (def! ::one-of
   {:type ::one-of
@@ -354,9 +362,6 @@
     ::oapi/type "integer"
     ::oapi/format "int64"
     ::oapi/decode parse-long}})
-
-(def safe-int?
-  (pred-fn ::safe-int))
 
 (def! ::safe-number
   {:type ::safe-number
@@ -400,3 +405,31 @@
                  :type-properties
                  {:title "contains"
                   :description "contains predicate"}}))})
+
+;; FIXME: add proper inst type
+;; (def! ::inst
+;;   {:type ::inst
+;;    :type-properties
+;;    {:title "inst"
+;;     :description "Satisfies Inst protocol"
+;;     :error/message "expected to be number in safe range"
+;;     :gen/gen (sg/small-double)
+;;     ::oapi/type "number"
+;;     ::oapi/format "double"
+;;     ::oapi/decode parse-double}})
+
+;; ---- PREDICATES
+
+(def safe-int?
+  (pred-fn ::safe-int))
+
+(def set-of-strings?
+  (pred-fn ::set-of-strings))
+
+(def set-of-emails?
+  (pred-fn ::set-of-emails))
+
+(def email?
+  (pred-fn ::email))
+
+

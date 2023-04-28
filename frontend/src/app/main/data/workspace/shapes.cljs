@@ -33,8 +33,6 @@
    [cljs.spec.alpha :as s]
    [potok.core :as ptk]))
 
-(s/def ::shape-attrs ::cts/shape-attrs)
-
 (defn get-shape-layer-position
   [objects selected attrs]
 
@@ -96,7 +94,7 @@
                       (pcb/change-parent (:parent-id attrs) [shape]))
                     (cond-> (ctl/grid-layout? objects (:parent-id shape))
                       (pcb/update-shapes [(:parent-id shape)] ctl/assign-cells)))]
-    
+
     [shape changes]))
 
 (defn add-shape
@@ -104,7 +102,7 @@
    (add-shape attrs {}))
 
   ([attrs {:keys [no-select? no-update-layout?]}]
-   (us/verify ::shape-attrs attrs)
+   ;; (us/verify ::shape-attrs attrs)
    (ptk/reify ::add-shape
      ptk/WatchEvent
      (watch [it state _]
@@ -400,7 +398,7 @@
 
             changes
             (prepare-move-shapes-into-frame changes (:id shape) selected objects)]
-        
+
         [shape changes]))))
 
 (defn create-artboard-from-selection
@@ -447,8 +445,10 @@
 
 (defn update-shape-flags
   [ids {:keys [blocked hidden] :as flags}]
-  (us/verify (s/coll-of ::us/uuid) ids)
-  (us/assert ::shape-attrs flags)
+  (dm/assert!
+   "expected valid coll of uuids"
+   (every? uuid? ids))
+  ;; (us/assert ::shape-attrs flags)
   (ptk/reify ::update-shape-flags
     ptk/WatchEvent
     (watch [_ state _]

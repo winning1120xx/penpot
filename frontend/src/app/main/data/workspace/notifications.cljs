@@ -183,19 +183,21 @@
                           :updated-at (dt/now)
                           :page-id page-id))))))
 
+;; FIXME: replace with schema
+
 (s/def ::type keyword?)
 (s/def ::profile-id uuid?)
 (s/def ::file-id uuid?)
 (s/def ::session-id uuid?)
 (s/def ::revn integer?)
-(s/def ::changes ::pcs/changes)
+(s/def ::changes any?) ;;::pcs/changes
 
 (s/def ::file-change-event
   (s/keys :req-un [::type ::profile-id ::file-id ::session-id ::revn ::changes]))
 
 (defn handle-file-change
   [{:keys [file-id changes] :as msg}]
-  (us/assert ::file-change-event msg)
+  (us/assert! ::file-change-event msg)
   (ptk/reify ::handle-file-change
     IDeref
     (-deref [_] {:changes changes})

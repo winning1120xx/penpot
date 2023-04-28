@@ -7,39 +7,7 @@
 (ns app.common.types.typography
   (:require
     [app.common.text :as txt]
-    [app.common.schema :as sm]
-    [clojure.spec.alpha :as s]))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; SPEC
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(s/def ::id uuid?)
-(s/def ::name string?)
-(s/def ::path (s/nilable string?))
-(s/def ::font-id string?)
-(s/def ::font-family string?)
-(s/def ::font-variant-id string?)
-(s/def ::font-size string?)
-(s/def ::font-weight string?)
-(s/def ::font-style string?)
-(s/def ::line-height string?)
-(s/def ::letter-spacing string?)
-(s/def ::text-transform string?)
-
-(s/def ::typography
-  (s/keys :req-un [::id
-                   ::name
-                   ::font-id
-                   ::font-family
-                   ::font-variant-id
-                   ::font-size
-                   ::font-weight
-                   ::font-style
-                   ::line-height
-                   ::letter-spacing
-                   ::text-transform]
-          :opt-un [::path]))
+    [app.common.schema :as sm]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; SCHEMA
@@ -59,6 +27,9 @@
    [:letter-spacing :string]
    [:text-transform :string]
    [:path {:optional true} [:maybe :string]]])
+
+(def typography?
+  (sm/pred-fn ::typography))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; HELPERS

@@ -156,12 +156,16 @@
 
 (defn create-modif-tree
   [ids modifiers]
-  (us/verify (s/coll-of uuid?) ids)
+  (dm/assert!
+   "expected valid coll of uuids"
+   (every? uuid? ids))
   (into {} (map #(vector % {:modifiers modifiers})) ids))
 
 (defn build-modif-tree
   [ids objects get-modifier]
-  (us/verify (s/coll-of uuid?) ids)
+  (dm/assert!
+   "expected valid coll of uuids"
+   (every? uuid? ids))
   (into {} (map #(vector % {:modifiers (get-modifier (get objects %))})) ids))
 
 (defn modifier-remove-from-parent

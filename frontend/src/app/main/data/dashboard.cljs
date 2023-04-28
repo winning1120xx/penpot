@@ -7,8 +7,10 @@
 (ns app.main.data.dashboard
   (:require
    [app.common.data :as d]
+   [app.common.data.macros :as dm]
    [app.common.pages :as cp]
    [app.common.spec :as us]
+   [app.common.schema :as sm]
    [app.common.uuid :as uuid]
    [app.config :as cf]
    [app.main.data.events :as ev]
@@ -25,37 +27,37 @@
    [cljs.spec.alpha :as s]
    [potok.core :as ptk]))
 
-;; --- Specs
+;; --- SCHEMAS
 
-(s/def ::id ::us/uuid)
-(s/def ::name string?)
-(s/def ::team-id ::us/uuid)
-(s/def ::profile-id ::us/uuid)
-(s/def ::project-id ::us/uuid)
-(s/def ::created-at ::us/inst)
-(s/def ::modified-at ::us/inst)
-(s/def ::is-pinned ::us/boolean)
+;; (s/def ::id ::us/uuid)
+;; (s/def ::name string?)
+;; (s/def ::team-id ::us/uuid)
+;; (s/def ::profile-id ::us/uuid)
+;; (s/def ::project-id ::us/uuid)
+;; (s/def ::created-at ::us/inst)
+;; (s/def ::modified-at ::us/inst)
+;; (s/def ::is-pinned ::us/boolean)
 
-(s/def ::team
-  (s/keys :req-un [::id
-                   ::name
-                   ::created-at
-                   ::modified-at]))
+;; (s/def ::team
+;;   (s/keys :req-un [::id
+;;                    ::name
+;;                    ::created-at
+;;                    ::modified-at]))
 
-(s/def ::project
-  (s/keys :req-un [::id
-                   ::name
-                   ::team-id
-                   ::created-at
-                   ::modified-at
-                   ::is-pinned]))
+;; (s/def ::project
+;;   (s/keys :req-un [::id
+;;                    ::name
+;;                    ::team-id
+;;                    ::created-at
+;;                    ::modified-at
+;;                    ::is-pinned]))
 
-(s/def ::file
-  (s/keys :req-un [::id
-                   ::name
-                   ::project-id]
-          :opt-un [::created-at
-                   ::modified-at]))
+;; (s/def ::file
+;;   (s/keys :req-un [::id
+;;                    ::name
+;;                    ::project-id]
+;;           :opt-un [::created-at
+;;                    ::modified-at]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Initialization
@@ -67,7 +69,7 @@
 
 (defn initialize
   [{:keys [id] :as params}]
-  (us/assert! ::us/uuid id)
+  (dm/assert! (uuid? id))
   (ptk/reify ::initialize
     ptk/UpdateEvent
     (update [_ state]
@@ -198,13 +200,13 @@
     (update [_ state]
       (assoc state :dashboard-search-result result))))
 
-(s/def ::search-term (s/nilable ::us/string))
-(s/def ::search
-  (s/keys :req-un [::search-term ]))
+(def schema:search-params
+  [:map {:closed true}
+   [:search-term [:maybe :string]]])
 
 (defn search
   [params]
-  (us/assert! ::search params)
+  (us/assert! schema:search-params params)
   (ptk/reify ::search
     ptk/UpdateEvent
     (update [_ state]
@@ -396,7 +398,6 @@
 
 (defn create-team-with-invitations
   [{:keys [name emails role] :as params}]
-  (us/assert! ::us/string name)
   (ptk/reify ::create-team-with-invitations
     ptk/WatchEvent
     (watch [_ _ _]
@@ -415,7 +416,6 @@
 
 (defn update-team
   [{:keys [id name] :as params}]
-  (us/assert! ::team params)
   (ptk/reify ::update-team
     ptk/UpdateEvent
     (update [_ state]
@@ -428,7 +428,7 @@
 
 (defn update-team-photo
   [file]
-  (us/assert! ::di/blob file)
+  ;; (us/assert! ::di/blob file)
   (ptk/reify ::update-team-photo
     ptk/WatchEvent
     (watch [_ state _]
@@ -449,8 +449,8 @@
 
 (defn update-team-member-role
   [{:keys [role member-id] :as params}]
-  (us/assert! ::us/uuid member-id)
-  (us/assert! ::us/keyword role)
+  (dm/assert! (uuid? member-id))
+  (dm/assert! (keyword? role)) ;  FIXME: validate proper role?
   (ptk/reify ::update-team-member-role
     ptk/WatchEvent
     (watch [_ state _]
@@ -463,7 +463,7 @@
 
 (defn delete-team-member
   [{:keys [member-id] :as params}]
-  (us/assert! ::us/uuid member-id)
+  (dm/assert! (uuid? member-id))
   (ptk/reify ::delete-team-member
     ptk/WatchEvent
     (watch [_ state _]
@@ -495,9 +495,10 @@
 
 (defn invite-team-members
   [{:keys [emails role team-id resend?] :as params}]
-  (us/assert! ::us/set-of-valid-emails emails)
-  (us/assert! ::us/keyword role)
-  (us/assert! ::us/uuid team-id)
+  (dm/assert! (keyword? role))
+  (dm/assert! (uuid? team-id))
+  (dm/assert! (sm/set-of-emails? emails))
+
   (ptk/reify ::invite-team-members
     IDeref
     (-deref [_] {:role role :team-id team-id :resend? resend?})
@@ -515,13 +516,12 @@
 
 (defn copy-invitation-link
   [{:keys [email team-id] :as params}]
-  (us/assert! ::us/email email)
-  (us/assert! ::us/uuid team-id)
+  (dm/assert! (sm/email? email))
+  (dm/assert! (uuid? team-id))
 
   (ptk/reify ::copy-invitation-link
     IDeref
     (-deref [_] {:email email :team-id team-id})
-
 
     ptk/WatchEvent
     (watch [_ state _]
@@ -544,9 +544,10 @@
 
 (defn update-team-invitation-role
   [{:keys [email team-id role] :as params}]
-  (us/assert! ::us/email email)
-  (us/assert! ::us/uuid team-id)
-  (us/assert! ::us/keyword role)
+  (dm/assert! (sm/email? email))
+  (dm/assert! (uuid? team-id))
+  (dm/assert! (keyword? role)) ;; FIXME validate role
+
   (ptk/reify ::update-team-invitation-role
     IDeref
     (-deref [_] {:role role})
@@ -852,7 +853,7 @@
 
 (defn file-created
   [{:keys [id project-id] :as file}]
-  (us/verify ::file file)
+  ;; (us/verify ::file file)
   (ptk/reify ::file-created
     IDeref
     (-deref [_] {:file-id id
@@ -867,7 +868,7 @@
 
 (defn create-file
   [{:keys [project-id] :as params}]
-  (us/assert! ::us/uuid project-id)
+  (dm/assert! (uuid? project-id))
   (ptk/reify ::create-file
 
     IDeref

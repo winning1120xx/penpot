@@ -25,9 +25,6 @@
    [cljs.spec.alpha :as s]
    [potok.core :as ptk]))
 
-(s/def ::nilable-boolean (s/nilable ::us/boolean))
-(s/def ::nilable-animation (s/nilable ::ctsi/animation))
-
 ;; --- Local State Initialization
 
 (def ^:private
@@ -380,11 +377,14 @@
          (dcm/close-thread)
          (rt/nav :viewer pparams (assoc qparams :index 0)))))))
 
-(s/def ::interactions-mode #{:hide :show :show-on-click})
+(def valid-interaction-modes
+  #{:hide :show :show-on-click})
 
 (defn set-interactions-mode
   [mode]
-  (us/verify ::interactions-mode mode)
+  (dm/assert!
+   "expected valid interaction mode"
+   (contains? valid-interaction-modes mode))
   (ptk/reify ::set-interactions-mode
     ptk/UpdateEvent
     (update [_ state]
@@ -552,12 +552,14 @@
 
 (defn open-overlay
   [frame-id position close-click-outside background-overlay animation]
-  (us/assert! ::us/uuid frame-id)
-  (us/assert! ::gpt/point position)
-  (us/assert! ::nilable-boolean close-click-outside)
-  (us/assert! ::nilable-boolean background-overlay)
-  (us/assert! ::nilable-animation animation)
-
+  (dm/assert! (uuid? frame-id))
+  (dm/assert! (gpt/point? position))
+  (dm/assert! (or (nil? close-click-outside)
+                  (boolean? close-click-outside)))
+  (dm/assert! (or (nil? background-overlay)
+                  (boolean? background-overlay)))
+  (dm/assert! (or (nil? animation)
+                  (ctsi/animation? animation)))
   (ptk/reify ::open-overlay
     ptk/UpdateEvent
     (update [_ state]

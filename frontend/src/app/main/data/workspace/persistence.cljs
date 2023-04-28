@@ -137,7 +137,7 @@
 (defn persist-changes
   [file-id file-revn changes pending-commits]
   (log/debug :hint "persist changes" :changes (count changes))
-  (us/verify ::us/uuid file-id)
+  (dm/assert! (uuid? file-id))
   (ptk/reify ::persist-changes
     ptk/WatchEvent
     (watch [_ state _]
@@ -197,7 +197,7 @@
 
 (defn persist-synchronous-changes
   [{:keys [file-id changes]}]
-  (us/verify ::us/uuid file-id)
+  (dm/assert! (uuid? file-id))
   (ptk/reify ::persist-synchronous-changes
     ptk/WatchEvent
     (watch [_ state _]
@@ -229,17 +229,17 @@
                        :status status
                        :updated-at (dt/now)))))))
 
-(s/def ::revn ::us/integer)
-(s/def ::shapes-changes-persisted
-  (s/keys :req-un [::revn ::pcs/changes]))
+;; (s/def ::revn ::us/integer)
+;; (s/def ::shapes-changes-persisted
+;;   (s/keys :req-un [::revn ::pcs/changes]))
 
 (defn shapes-persisted-event? [event]
   (= (ptk/type event) ::changes-persisted))
 
 (defn shapes-changes-persisted
   [file-id {:keys [revn changes] :as params}]
-  (us/verify! ::us/uuid file-id)
-  (us/verify! ::shapes-changes-persisted params)
+  (dm/assert! (uuid? file-id))
+  ;; (us/verify! ::shapes-changes-persisted params)
   (ptk/reify ::shapes-changes-persisted
     ptk/UpdateEvent
     (update [_ state]
