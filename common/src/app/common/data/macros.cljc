@@ -131,7 +131,8 @@
 (def ^:dynamic *assert-context* nil)
 
 (defmacro assert!
-  ([expr] (assert! nil expr))
+  ([expr]
+   (assert! nil expr))
   ([hint expr]
    (let [hint (or hint (str "expr assert: " (pr-str expr)))]
      (when *assert*

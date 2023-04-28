@@ -93,6 +93,9 @@
      [:easing [::sm/one-of easing-types]]
      [:direction [::sm/one-of direction-types]]]]])
 
+(def animation?
+  (sm/pred-fn ::animation))
+
 ;; FIXME: generator generates invalid data
 (sm/def! ::interaction
   [:multi {:dispatch :action-type}
@@ -691,14 +694,27 @@
 
 (defn set-direction
   [interaction direction]
-  ;; (us/verify ::interaction interaction)
-  ;; (us/verify ::direction direction)
-  ;; (assert (has-direction? interaction))
+
+  (dm/assert!
+   "expected valid interaction map"
+   (interaction? interaction?))
+
+  (dm/assert!
+   "expected valid direction"
+   (contains? direction-types direction))
+
+  (dm/assert!
+   "expected compatible interaction map"
+   (has-direction? interaction))
+
   (update interaction :animation assoc :direction direction))
 
 (defn invert-direction
   [animation]
-  ;; (us/verify (s/nilable ::animation) animation)
+  (dm/assert!
+   "expected valid animation map"
+   (or (nil? animation)
+       (animation? animation?)))
   (case (:direction animation)
     :right
     (assoc animation :direction :left)
@@ -708,6 +724,7 @@
     (assoc animation :direction :down)
     :down
     (assoc animation :direction :up)
+
     animation))
 
 (defn has-offset-effect?
@@ -718,9 +735,19 @@
 
 (defn set-offset-effect
   [interaction offset-effect]
-  ;; (us/verify ::interaction interaction)
-  ;; (us/verify ::offset-effect offset-effect)
-  ;; (assert (has-offset-effect? interaction))
+
+  (dm/assert!
+   "expected valid interaction map"
+   (interaction? interaction?))
+
+  (dm/assert!
+   "expected valid boolean for `offset-effect`"
+   (boolean? offset-effect))
+
+  (dm/assert!
+   "expected compatible interaction map"
+   (has-offset-effect? interaction))
+
   (update interaction :animation assoc :offset-effect offset-effect))
 
 (defn dest-to?

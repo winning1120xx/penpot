@@ -13,7 +13,6 @@
    [app.common.math :as mth]
    [app.common.pages.helpers :as cph]
    [app.common.schema :as sm]
-   [app.common.spec :as us]
    [app.common.types.component :as ctk]
    [app.common.types.shape :as cts]
    [app.common.types.shape.layout :as ctl]
@@ -366,7 +365,7 @@
 
          (let [child-id (first child-ids)
                child    (get objects child-id)
-               _        (us/assert! ::us/some child)
+               _        (dm/assert! (some? child))
 
                [new-child new-child-objects updated-child-objects]
                (clone-object child new-id objects update-new-object update-original-object)]

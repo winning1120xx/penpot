@@ -308,7 +308,7 @@
   {:type ::set-of-strings
    :pred #(and (set? %) (every? string? %))
    :type-properties
-   {:title "set[type=string]"
+   {:title "set[string]"
     :description "Set of Strings"
     :error/message "should be an set of strings"
     :gen/gen (-> :string sg/generator sg/set)
@@ -318,6 +318,9 @@
     ::oapi/unique-items true
     ::decode (fn [v]
                (into #{} non-empty-strings-xf (str/split v #"[\s,]+")))}})
+
+(def set-of-strings?
+  (pred-fn ::set-of-strings))
 
 (def! ::one-of
   {:type ::one-of

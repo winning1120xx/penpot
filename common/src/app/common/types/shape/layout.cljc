@@ -40,114 +40,114 @@
 ;; :layout-item-absolute
 ;; :layout-item-z-index
 
-(s/def ::layout  #{:flex :grid})
+;; (s/def ::layout  #{:flex :grid})
 
-(s/def ::layout-flex-dir #{:row :reverse-row :row-reverse :column :reverse-column :column-reverse}) ;;TODO remove reverse-column and reverse-row after script
-(s/def ::layout-grid-dir #{:row :column})
-(s/def ::layout-gap-type #{:simple :multiple})
-(s/def ::layout-gap ::us/safe-number)
+;; (s/def ::layout-flex-dir #{:row :reverse-row :row-reverse :column :reverse-column :column-reverse}) ;;TODO remove reverse-column and reverse-row after script
+;; (s/def ::layout-grid-dir #{:row :column})
+;; (s/def ::layout-gap-type #{:simple :multiple})
+;; (s/def ::layout-gap ::us/safe-number)
 
-(s/def ::layout-align-items #{:start :end :center :stretch})
-(s/def ::layout-justify-items #{:start :end :center :stretch})
-(s/def ::layout-align-content #{:start :end :center :space-between :space-around :space-evenly :stretch})
-(s/def ::layout-justify-content #{:start :center :end :space-between :space-around :space-evenly})
-(s/def ::layout-wrap-type #{:wrap :nowrap :no-wrap}) ;;TODO remove no-wrap after script
-(s/def ::layout-padding-type #{:simple :multiple})
+;; (s/def ::layout-align-items #{:start :end :center :stretch})
+;; (s/def ::layout-justify-items #{:start :end :center :stretch})
+;; (s/def ::layout-align-content #{:start :end :center :space-between :space-around :space-evenly :stretch})
+;; (s/def ::layout-justify-content #{:start :center :end :space-between :space-around :space-evenly})
+;; (s/def ::layout-wrap-type #{:wrap :nowrap :no-wrap}) ;;TODO remove no-wrap after script
+;; (s/def ::layout-padding-type #{:simple :multiple})
 
-(s/def :grid/type #{:percent :flex :auto :fixed})
-(s/def :grid/value (s/nilable ::us/safe-number))
-(s/def ::grid-definition (s/keys :req-un [:grid/type]
-                                 :opt-un [:grid/value]))
-(s/def ::layout-grid-rows (s/coll-of ::grid-definition :kind vector?))
-(s/def ::layout-grid-columns (s/coll-of ::grid-definition :kind vector?))
+;; (s/def :grid/type #{:percent :flex :auto :fixed})
+;; (s/def :grid/value (s/nilable ::us/safe-number))
+;; (s/def ::grid-definition (s/keys :req-un [:grid/type]
+;;                                  :opt-un [:grid/value]))
+;; (s/def ::layout-grid-rows (s/coll-of ::grid-definition :kind vector?))
+;; (s/def ::layout-grid-columns (s/coll-of ::grid-definition :kind vector?))
 
-(s/def :grid-cell/id uuid?)
-(s/def :grid-cell/area-name ::us/string)
-(s/def :grid-cell/row-start ::us/safe-integer)
-(s/def :grid-cell/row-span ::us/safe-integer)
-(s/def :grid-cell/column-start ::us/safe-integer)
-(s/def :grid-cell/column-span ::us/safe-integer)
-(s/def :grid-cell/position #{:auto :manual :area})
-(s/def :grid-cell/align-self #{:auto :start :end :center :stretch})
-(s/def :grid-cell/justify-self #{:auto :start :end :center :stretch})
-(s/def :grid-cell/shapes (s/coll-of uuid?))
+;; (s/def :grid-cell/id uuid?)
+;; (s/def :grid-cell/area-name ::us/string)
+;; (s/def :grid-cell/row-start ::us/safe-integer)
+;; (s/def :grid-cell/row-span ::us/safe-integer)
+;; (s/def :grid-cell/column-start ::us/safe-integer)
+;; (s/def :grid-cell/column-span ::us/safe-integer)
+;; (s/def :grid-cell/position #{:auto :manual :area})
+;; (s/def :grid-cell/align-self #{:auto :start :end :center :stretch})
+;; (s/def :grid-cell/justify-self #{:auto :start :end :center :stretch})
+;; (s/def :grid-cell/shapes (s/coll-of uuid?))
 
-(s/def ::grid-cell (s/keys :opt-un [:grid-cell/id
-                                    :grid-cell/area-name
-                                    :grid-cell/row-start
-                                    :grid-cell/row-span
-                                    :grid-cell/column-start
-                                    :grid-cell/column-span
-                                    :grid-cell/position ;; auto, manual, area
-                                    :grid-cell/align-self
-                                    :grid-cell/justify-self
-                                    :grid-cell/shapes]))
-(s/def ::layout-grid-cells (s/map-of uuid? ::grid-cell))
+;; (s/def ::grid-cell (s/keys :opt-un [:grid-cell/id
+;;                                     :grid-cell/area-name
+;;                                     :grid-cell/row-start
+;;                                     :grid-cell/row-span
+;;                                     :grid-cell/column-start
+;;                                     :grid-cell/column-span
+;;                                     :grid-cell/position ;; auto, manual, area
+;;                                     :grid-cell/align-self
+;;                                     :grid-cell/justify-self
+;;                                     :grid-cell/shapes]))
+;; (s/def ::layout-grid-cells (s/map-of uuid? ::grid-cell))
 
-(s/def ::p1 ::us/safe-number)
-(s/def ::p2 ::us/safe-number)
-(s/def ::p3 ::us/safe-number)
-(s/def ::p4 ::us/safe-number)
+;; (s/def ::p1 ::us/safe-number)
+;; (s/def ::p2 ::us/safe-number)
+;; (s/def ::p3 ::us/safe-number)
+;; (s/def ::p4 ::us/safe-number)
 
-(s/def ::layout-padding
-  (s/keys :opt-un [::p1 ::p2 ::p3 ::p4]))
+;; (s/def ::layout-padding
+;;   (s/keys :opt-un [::p1 ::p2 ::p3 ::p4]))
 
-(s/def ::row-gap ::us/safe-number)
-(s/def ::column-gap ::us/safe-number)
+;; (s/def ::row-gap ::us/safe-number)
+;; (s/def ::column-gap ::us/safe-number)
 
-(s/def ::layout-gap
-  (s/keys :opt-un [::row-gap ::column-gap]))
+;; (s/def ::layout-gap
+;;   (s/keys :opt-un [::row-gap ::column-gap]))
 
-(s/def ::layout-container-props
-  (s/keys :opt-un [::layout
-                   ::layout-flex-dir
-                   ::layout-gap
-                   ::layout-gap-type
-                   ::layout-wrap-type
-                   ::layout-padding-type
-                   ::layout-padding
-                   ::layout-justify-content
-                   ::layout-align-items
-                   ::layout-align-content
+;; (s/def ::layout-container-props
+;;   (s/keys :opt-un [::layout
+;;                    ::layout-flex-dir
+;;                    ::layout-gap
+;;                    ::layout-gap-type
+;;                    ::layout-wrap-type
+;;                    ::layout-padding-type
+;;                    ::layout-padding
+;;                    ::layout-justify-content
+;;                    ::layout-align-items
+;;                    ::layout-align-content
 
-                   ;; grid
-                   ::layout-grid-dir
-                   ::layout-justify-items
-                   ::layout-grid-rows
-                   ::layout-grid-columns
-                   ::layout-grid-cells
-                   ]))
+;;                    ;; grid
+;;                    ::layout-grid-dir
+;;                    ::layout-justify-items
+;;                    ::layout-grid-rows
+;;                    ::layout-grid-columns
+;;                    ::layout-grid-cells
+;;                    ]))
 
-(s/def ::m1 ::us/safe-number)
-(s/def ::m2 ::us/safe-number)
-(s/def ::m3 ::us/safe-number)
-(s/def ::m4 ::us/safe-number)
+;; (s/def ::m1 ::us/safe-number)
+;; (s/def ::m2 ::us/safe-number)
+;; (s/def ::m3 ::us/safe-number)
+;; (s/def ::m4 ::us/safe-number)
 
-(s/def ::layout-item-margin (s/keys :opt-un [::m1 ::m2 ::m3 ::m4]))
+;; (s/def ::layout-item-margin (s/keys :opt-un [::m1 ::m2 ::m3 ::m4]))
 
-(s/def ::layout-item-margin-type #{:simple :multiple})
-(s/def ::layout-item-h-sizing #{:fill :fix :auto})
-(s/def ::layout-item-v-sizing #{:fill :fix :auto})
-(s/def ::layout-item-align-self #{:start :end :center :stretch})
-(s/def ::layout-item-max-h ::us/safe-number)
-(s/def ::layout-item-min-h ::us/safe-number)
-(s/def ::layout-item-max-w ::us/safe-number)
-(s/def ::layout-item-min-w ::us/safe-number)
-(s/def ::layout-item-absolute boolean?)
-(s/def ::layout-item-z-index ::us/safe-integer)
+;; (s/def ::layout-item-margin-type #{:simple :multiple})
+;; (s/def ::layout-item-h-sizing #{:fill :fix :auto})
+;; (s/def ::layout-item-v-sizing #{:fill :fix :auto})
+;; (s/def ::layout-item-align-self #{:start :end :center :stretch})
+;; (s/def ::layout-item-max-h ::us/safe-number)
+;; (s/def ::layout-item-min-h ::us/safe-number)
+;; (s/def ::layout-item-max-w ::us/safe-number)
+;; (s/def ::layout-item-min-w ::us/safe-number)
+;; (s/def ::layout-item-absolute boolean?)
+;; (s/def ::layout-item-z-index ::us/safe-integer)
 
-(s/def ::layout-child-props
-  (s/keys :opt-un [::layout-item-margin
-                   ::layout-item-margin-type
-                   ::layout-item-h-sizing
-                   ::layout-item-v-sizing
-                   ::layout-item-max-h
-                   ::layout-item-min-h
-                   ::layout-item-max-w
-                   ::layout-item-min-w
-                   ::layout-item-align-self
-                   ::layout-item-absolute
-                   ::layout-item-z-index]))
+;; (s/def ::layout-child-props
+;;   (s/keys :opt-un [::layout-item-margin
+;;                    ::layout-item-margin-type
+;;                    ::layout-item-h-sizing
+;;                    ::layout-item-v-sizing
+;;                    ::layout-item-max-h
+;;                    ::layout-item-min-h
+;;                    ::layout-item-max-w
+;;                    ::layout-item-min-w
+;;                    ::layout-item-align-self
+;;                    ::layout-item-absolute
+;;                    ::layout-item-z-index]))
 
 (defn flex-layout?
   ([objects id]

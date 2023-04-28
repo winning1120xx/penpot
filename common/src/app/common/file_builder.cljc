@@ -53,7 +53,7 @@
                          :frame-id (:current-frame-id file)))]
 
      (when fail-on-spec?
-       (us/verify ::pcs/change change))
+       (dm/verify! (ch/change? change)))
 
      (let [valid? (us/valid? ::pcs/change change)
            explain (spec/explain-str ::pcs/change change)]

@@ -6,11 +6,11 @@
 
 (ns app.common.types.container
   (:require
+   [app.common.data.macros :as dm]
    [app.common.geom.point :as gpt]
    [app.common.geom.shapes :as gsh]
    [app.common.pages.common :as common]
    [app.common.schema :as sm]
-   [app.common.spec :as us]
    [app.common.types.components-list :as ctkl]
    [app.common.types.pages-list :as ctpl]
    [app.common.types.shape :as-alias cts]
@@ -21,13 +21,20 @@
 ;; SCHEMA
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(def container-types
+  #{:page :component})
+
 (sm/def! ::container
   [:map
    [:id ::sm/uuid]
+   [:type {:optional  true} [::sm/one-of container-types]]
    [:name :string]
    [:path {:optional true} [:maybe :string]]
    [:objects {:optional true}
     [:map-of {:gen/max 10} ::sm/uuid ::cts/shape]]])
+
+(def container?
+  (sm/pred-fn ::container))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; HELPERS
@@ -47,9 +54,9 @@
 
 (defn get-container
   [file type id]
-  (us/assert map? file)
-  (us/assert ::type type)
-  (us/assert uuid? id)
+  (dm/assert! (map? file))
+  (dm/assert! (contains? container-types type))
+  (dm/assert! (uuid? id))
 
   (-> (if (= type :page)
         (ctpl/get-page file id)
@@ -58,8 +65,14 @@
 
 (defn get-shape
   [container shape-id]
-  (us/assert ::container container)
-  (us/assert ::us/uuid shape-id)
+  (dm/assert!
+   "expected valid container"
+   (container? container))
+
+  (dm/assert!
+   "expected valid uuid for `shape-id`"
+   (uuid? shape-id))
+
   (-> container
       (get :objects)
       (get shape-id)))

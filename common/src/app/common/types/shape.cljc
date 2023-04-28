@@ -20,6 +20,7 @@
    [app.common.types.shape.blur :as ctsb]
    [app.common.types.shape.export :as ctse]
    [app.common.types.shape.interactions :as ctsi]
+   ;; FIXME: missing layout specs
    [app.common.types.shape.layout :as ctsl]
    [app.common.types.shape.path :as ctsp]
    [app.common.types.shape.radius :as ctsr]
