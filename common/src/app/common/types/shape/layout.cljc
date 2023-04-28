@@ -9,6 +9,7 @@
    [app.common.data :as d]
    [app.common.data.macros :as dm]
    [app.common.spec :as us]
+   [app.common.schema :as sm]
    [app.common.uuid :as uuid]
    [clojure.spec.alpha :as s]))
 
@@ -39,6 +40,8 @@
 ;; :layout-item-min-w       ;; num
 ;; :layout-item-absolute
 ;; :layout-item-z-index
+
+
 
 ;; (s/def ::layout  #{:flex :grid})
 
@@ -148,6 +151,18 @@
 ;;                    ::layout-item-align-self
 ;;                    ::layout-item-absolute
 ;;                    ::layout-item-z-index]))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; SCHEMAS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def valid-layouts
+  #{:flex :grid})
+
+(sm/def! ::layout
+  [::sm/one-of valid-layouts])
+
+
 
 (defn flex-layout?
   ([objects id]

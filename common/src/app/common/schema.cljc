@@ -26,6 +26,8 @@
 
 (defn validate
   [s value]
+
+  (prn "validate" s value)
   (m/validate s value {:registry sr/default-registry}))
 
 (defn explain
@@ -115,8 +117,8 @@
 
 (defn lazy-validator
   [s]
-  `(let [vfn (delay (validator s))]
-     (fn [v] (@vfn v))))
+  (let [vfn (delay (validator s))]
+    (fn [v] (@vfn v))))
 
 (defn lazy-explainer
   [s]
@@ -187,32 +189,31 @@
   ([s] (lookup sr/default-registry s))
   ([registry s] (schema (mr/schema registry s))))
 
-(defn- get-assert-context
-  [env form sname]
-  (if-let [nsdata (:ns env)]
-    {:ns (str (:name nsdata))
-     :schema sname
-     :line (:line env)
-     :file (:file (:meta nsdata))}
-    {:ns   (str (ns-name *ns*))
-     :schema sname
-     :line (:line (meta form))}))
+;; (defn- get-assert-context
+;;   [env form sname]
+;;   (if-let [nsdata (:ns env)]
+;;     {:ns (str (:name nsdata))
+;;      :schema sname
+;;      :line (:line env)
+;;      :file (:file (:meta nsdata))}
+;;     {:ns   (str (ns-name *ns*))
+;;      :schema sname
+;;      :line (:line (meta form))}))
 
 (defmacro assert!
   [& [s value hint]]
   (when *assert*
     `(let [s# (schema ~s)
            v# ~value
-           h# ~(or hint (str "schema assert: " (pr-str s)))
-           c# ~(get-assert-context &env &form (pr-str s))]
-       (if (validate s# v#)
+           h# ~(or hint (str "schema assert: " (pr-str s)))]
+       (if (m/validate s# v#)
          v#
-         (let [exp#  (explain s# v#)
-               data# {:type :assertion
-                      :code :data-validation
-                      :hint h#
-                      ::explain exp#}]
-           (throw (ex-info h# (into data# c#))))))))
+         (let [e# (explain s# v#)
+               d# {:type :assertion
+                   :code :data-validation
+                   :hint h#
+                   ::explain e#}]
+           (throw (ex-info h# d#)))))))
 
 (defmacro verify!
   "A variant of `assert!` macro that evaluates always, independently
@@ -289,6 +290,7 @@
    {:title "email"
     :description "string with valid email address"
     :error/message "expected valid email"
+    :gen/gen (-> :string sg/generator)
     ::oapi/type "string"
     ::oapi/format "email"
     ::oapi/decode parse-email}})

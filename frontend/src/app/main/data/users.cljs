@@ -283,8 +283,16 @@
 
 ;; --- Update Profile
 
+(defn test1
+  []
+  (sm/assert! ::profile {}))
+
+(def profile?
+  (sm/pred-fn ::profile))
+
 (defn update-profile
   [data]
+  (js-debugger)
   (sm/assert! ::profile data)
   (ptk/reify ::update-profile
     ptk/WatchEvent

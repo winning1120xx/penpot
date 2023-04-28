@@ -161,6 +161,9 @@
    [:grow-type [::sm/one-of #{:auto-width :auto-height :fixed}]]
    ])
 
+(def shape-attrs?
+  (sm/pred-fn ::shape-attrs))
+
 (sm/def! ::group-attrs
   [:map {:title "GroupAttrs"}
    [:type [:= :group]]

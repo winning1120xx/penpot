@@ -84,10 +84,6 @@
 
 (def default-workspace-local {:zoom 1})
 
-(s/def ::layout-name (s/nilable ::us/keyword))
-(s/def ::coll-of-uuids (s/coll-of ::us/uuid))
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Workspace Initialization
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -101,7 +97,11 @@
 
 (defn initialize-layout
   [lname]
-  (us/assert! ::layout-name lname)
+  ;; (dm/assert!
+  ;;  "expected valid layout"
+  ;;  (and (keyword? lname)
+  ;;       (contains? layout/presets lname)))
+
   (ptk/reify ::initialize-layout
     ptk/UpdateEvent
     (update [_ state]
@@ -299,8 +299,8 @@
 
 (defn initialize-file
   [project-id file-id]
-  (us/assert! ::us/uuid project-id)
-  (us/assert! ::us/uuid file-id)
+  (dm/assert! (uuid? project-id))
+  (dm/assert! (uuid? file-id))
 
   (ptk/reify ::initialize-file
     ptk/UpdateEvent
@@ -351,7 +351,7 @@
 
 (defn initialize-page
   [page-id]
-  (us/assert! ::us/uuid page-id)
+  (dm/assert! (uuid? page-id))
   (ptk/reify ::initialize-page
     ptk/UpdateEvent
     (update [_ state]
@@ -385,7 +385,7 @@
 
 (defn finalize-page
   [page-id]
-  (us/assert! ::us/uuid page-id)
+  (dm/assert! (uuid? page-id))
   (ptk/reify ::finalize-page
     ptk/UpdateEvent
     (update [_ state]
@@ -567,7 +567,7 @@
 (defn update-shape
   [id attrs]
   (dm/assert! (uuid? id))
-  ;; (us/verify ::cts/shape-attrs attrs)
+  (dm/assert! (cts/shape-attrs? attrs))
   (ptk/reify ::update-shape
     ptk/WatchEvent
     (watch [_ _ _]
@@ -593,7 +593,7 @@
 
 (defn update-selected-shapes
   [attrs]
-  ;; (us/verify ::cts/shape-attrs attrs)
+  (dm/assert! (cts/shape-attrs? attrs))
   (ptk/reify ::update-selected-shapes
     ptk/WatchEvent
     (watch [_ state _]
@@ -937,7 +937,10 @@
 
 (defn align-objects
   [axis]
-  ;; (us/verify ::gal/align-axis axis)
+  (dm/assert!
+   "expected valid align axis value"
+   (contains? gal/valid-align-axis axis))
+
   (ptk/reify ::align-objects
     ptk/WatchEvent
     (watch [_ state _]
@@ -978,7 +981,10 @@
 
 (defn distribute-objects
   [axis]
-  ;; (us/verify ::gal/dist-axis axis)
+  (dm/assert!
+   "expected valid distribute axis value"
+   (contains? gal/valid-dist-axis axis))
+
   (ptk/reify ::distribute-objects
     ptk/WatchEvent
     (watch [_ state _]
@@ -1057,7 +1063,7 @@
              qparams    {:page-id page-id}]
          (rx/of (rt/nav' :workspace pparams qparams))))))
   ([page-id]
-   (us/assert! ::us/uuid page-id)
+   (dm/assert! (uuid? page-id))
    (ptk/reify ::go-to-page-2
      ptk/WatchEvent
      (watch [_ state _]
@@ -1069,7 +1075,6 @@
 
 (defn go-to-layout
   [layout]
-  ;; (us/verify ::layout/flag layout)
   (ptk/reify ::go-to-layout
     IDeref
     (-deref [_] {:layout layout})
@@ -1727,7 +1732,7 @@
 
 (defn paste-text
   [text]
-  (us/assert! (string? text) "expected string as first argument")
+  (dm/assert! (string? text))
   (ptk/reify ::paste-text
     ptk/WatchEvent
     (watch [_ state _]
@@ -1754,7 +1759,7 @@
 ;; TODO: why not implement it in terms of upload-media-workspace?
 (defn- paste-svg
   [text]
-  (us/assert! (string? text) "expected string as first argument")
+  (dm/assert! (string? text))
   (ptk/reify ::paste-svg
     ptk/WatchEvent
     (watch [_ state _]

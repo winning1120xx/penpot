@@ -28,39 +28,28 @@
 (defn on-error
   "A general purpose error handler."
   [error]
-  (cond
-    (instance? ExceptionInfo error)
-    (let [data (ex-data error)]
-      (if (contains? data :type)
-        (ptk/handle-error data)
-        (let [hint (str/ffmt "Unexpected error: '%'" (ex-message error))]
-          (ts/schedule #(st/emit! (rt/assign-exception error)))
-          (js/console.group hint)
-          (js/console.log (.-stack error))
-          (js/console.groupEnd hint))))
-
-    (map? error)
+  (if (map? error)
     (ptk/handle-error error)
 
-    :else
-    (let [hint (ex-message error)
-          msg  (dm/str "Internal Error: " hint)]
-      (ts/schedule #(st/emit! (rt/assign-exception error)))
-
-      (js/console.group msg)
-      (ex/ignoring (js/console.error error))
-      (js/console.groupEnd msg))))
+    (let [data (ex-data error)
+          data (-> data
+                   (assoc :type (:type data :unexpected))
+                   (assoc :hint (or (:hint data) (ex-message error)))
+                   (assoc ::trace (.-stack error)))]
+      (ptk/handle-error data))))
 
 ;; Set the main potok error handler
 (reset! st/on-error on-error)
 
 (defmethod ptk/handle-error :default
-  [error]
-  (let [hint (str/ffmt "Unhandled error: '%'" (:hint error "[no hint]"))]
-    (ts/schedule #(st/emit! (rt/assign-exception error)))
-    (js/console.group hint)
-    (ex/ignoring (js/console.error (pr-str error)))
-    (js/console.groupEnd hint)))
+  [{:keys [hint ::trace ::instance]}]
+  (let [message "Unhandled error"]
+    (ts/schedule #(st/emit! (rt/assign-exception instance)))
+
+    (js/console.group message)
+    (js/console.log hint)
+    (js/console.log trace)
+    (js/console.groupEnd message)))
 
 ;; We receive a explicit authentication error; this explicitly clears
 ;; all profile data and redirect the user to the login page. This is
@@ -143,15 +132,9 @@
 ;; assertion (assertion that is preserved on production builds). From
 ;; the user perspective this should be treated as internal error.
 (defmethod ptk/handle-error :assertion
-  [{:keys [message hint] :as error}]
-  (let [message (or message hint)
-        message (dm/str "Internal Assertion Error: " message)
-        context (dm/fmt "ns: '%'\nname: '%'\nfile: '%:%'"
-                        (:ns error)
-                        (:name error)
-                        (dm/str @cf/public-uri "js/cljs-runtime/" (:file error))
-                        (:line error))]
-
+  [{:keys [hint ::trace] :as error}]
+  (app.common.pprint/pprint error)
+  (let [message (dm/str "Internal Assertion Error: " hint)]
     (ts/schedule
      #(st/emit! (msg/show {:content "Internal error: assertion."
                            :type :error
@@ -159,8 +142,9 @@
 
     ;; Print to the console some debugging info
     (js/console.group message)
-    (js/console.info context)
-    (js/console.log (us/pretty-explain error))
+    (js/console.log trace)
+    ;; (js/console.info context)
+    ;; (js/console.log (us/pretty-explain error))
     (js/console.groupEnd message)))
 
 ;; That are special case server-errors that should be treated
@@ -224,23 +208,22 @@
   (letfn [(is-ignorable-exception? [cause]
             (let [message (ex-message cause)]
               (or (= message "Possible side-effect in debug-evaluate")
-                  (= message "Unexpected end of input") true
+                  (= message "Unexpected end of input")
                   (str/starts-with? message "Unexpected token "))))]
-    (if (instance? ExceptionInfo error)
-      (-> error ex-data ptk/handle-error)
-      (when-not (is-ignorable-exception? error)
-        (let [hint (ex-message error)
-              msg  (dm/str "Unhandled Internal Error: " hint)]
-          (ts/schedule #(st/emit! (rt/assign-exception error)))
-          (js/console.group msg)
-          (ex/ignoring (js/console.error error))
-          (js/console.groupEnd msg))))))
 
-(defonce uncaught-error-handler
-  (letfn [(on-error [event]
-            (.preventDefault ^js event)
-            (some-> (unchecked-get event "error")
-                    (on-unhandled-error)))]
-    (.addEventListener glob/window "error" on-error)
-    (fn []
-      (.removeEventListener glob/window "error" on-error))))
+    (when-not (is-ignorable-exception? error)
+      (let [data (ex-data error)
+            data (-> data
+                     (assoc :type (:type data :unhandled))
+                     (assoc :hint (or (:hint data) (ex-message error)))
+                     (assoc ::trace (.-stack error)))]
+        (ptk/handle-error data)))))
+
+;; (defonce uncaught-error-handler
+;;   (letfn [(on-error [event]
+;;             (.preventDefault ^js event)
+;;             (some-> (unchecked-get event "error")
+;;                     (on-unhandled-error)))]
+;;     (.addEventListener glob/window "error" on-error)
+;;     (fn []
+;;       (.removeEventListener glob/window "error" on-error))))
