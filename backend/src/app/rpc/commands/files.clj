@@ -13,7 +13,7 @@
    [app.common.pages.helpers :as cph]
    [app.common.pages.migrations :as pmg]
    [app.common.schema :as sm]
-   [app.common.schema.describe2 :as-alias smd2]
+   [app.common.schema.desc-js-like :as-alias smdj]
    [app.common.spec :as us]
    [app.common.types.components-list :as ctkl]
    [app.common.types.file :as ctf]
@@ -263,7 +263,7 @@
 
 (sm/def! ::features
   [:schema {:title "FileFeatures"
-            ::smd2/inline true
+            ::smdj/inline true
             :gen/gen (sm/gen-set-from-choices ["storage/pointer-map"
                                                "storage/objects-map"
                                                "components/v2"])}

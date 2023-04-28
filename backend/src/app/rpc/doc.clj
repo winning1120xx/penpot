@@ -11,8 +11,8 @@
    [app.common.exceptions :as ex]
    [app.common.pprint :as pp]
    [app.common.schema :as sm]
-   [app.common.schema.describe :as smd]
-   [app.common.schema.describe2 :as smd2]
+   [app.common.schema.desc-native :as smdn]
+   [app.common.schema.desc-js-like :as smdj]
    [app.common.schema.generators :as sg]
    [app.common.schema.openapi :as oapi]
    [app.common.schema.registry :as sr]
@@ -47,8 +47,8 @@
           (fmt-schema [type mdata key]
             (when-let [schema (get mdata key)]
               (if (= type :js)
-                (smd2/describe (sm/schema schema) {::smd2/max-level 4})
-                (-> (smd/describe (sm/schema schema))
+                (smdj/describe (sm/schema schema) {::smdj/max-level 4})
+                (-> (smdn/describe (sm/schema schema))
                     (pp/pprint-str {:level 5 :width 70})))))
 
           (get-context [mdata]
