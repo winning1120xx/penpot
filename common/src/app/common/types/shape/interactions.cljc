@@ -626,9 +626,19 @@
 
 (defn set-duration
   [interaction duration]
-  ;; (us/verify ::interaction interaction)
-  ;; (us/verify ::duration duration)
-  ;; (assert (has-duration? interaction))
+
+  (dm/assert!
+   "expected valid interaction map"
+   (interaction? interaction?))
+
+  (dm/assert!
+   "expected valid duration"
+   (sm/safe-int? duration))
+
+  (dm/assert!
+   "expected compatible interaction map"
+   (has-duration? interaction))
+
   (update interaction :animation assoc :duration duration))
 
 (defn has-easing?
@@ -637,9 +647,19 @@
 
 (defn set-easing
   [interaction easing]
-  ;; (us/verify ::interaction interaction)
-  ;; (us/verify ::easing easing)
-  ;; (assert (has-easing? interaction))
+
+  (dm/assert!
+   "expected valid interaction map"
+   (interaction? interaction?))
+
+  (dm/assert!
+   "expected valid easing"
+   (contains? easing-types easing))
+
+  (dm/assert!
+   "expected compatible interaction map"
+   (has-easing? interaction))
+
   (update interaction :animation assoc :easing easing))
 
 (defn has-way?
@@ -650,9 +670,19 @@
 
 (defn set-way
   [interaction way]
-  ;; (us/verify ::interaction interaction)
-  ;; (us/verify ::way way)
-  ;; (assert (has-way? interaction))
+
+  (dm/assert!
+   "expected valid interaction map"
+   (interaction? interaction?))
+
+  (dm/assert!
+   "expected valid way"
+   (contains? way-types way))
+
+  (dm/assert!
+   "expected compatible interaction map"
+   (has-way? interaction))
+
   (update interaction :animation assoc :way way))
 
 (defn has-direction?
