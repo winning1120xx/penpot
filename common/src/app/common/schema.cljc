@@ -286,6 +286,7 @@
 ;; FIXME: add proper email generator
 (def! ::email
   {:type ::email
+   :pred string?
    :type-properties
    {:title "email"
     :description "string with valid email address"
