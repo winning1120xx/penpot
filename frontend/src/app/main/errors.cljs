@@ -9,9 +9,11 @@
   (:require
    [app.common.data :as d]
    [app.common.data.macros :as dm]
+   [app.common.pprint :as pp]
    [app.common.exceptions :as ex]
    [app.common.pprint :as pp]
    [app.common.spec :as us]
+   [app.common.schema :as sm]
    [app.config :as cf]
    [app.main.data.messages :as msg]
    [app.main.data.modal :as modal]
@@ -25,16 +27,47 @@
    [cuerdas.core :as str]
    [potok.core :as ptk]))
 
-(defn on-error
+(defn- print-error-data!
+  [data]
+  (-> data
+      (dissoc ::sm/explain)
+      (dissoc :hint)
+      (dissoc ::trace)
+      (dissoc ::instance)
+      (pp/pprint {:width 70})))
+
+(defn- print-explain!
+  [data]
+  (when-let [explain (::sm/explain data)]
+    (-> (sm/humanize-data explain)
+        (pp/pprint {:width 70}))))
+
+(defn- print-trace!
+  [data]
+  (some-> data ::trace js/console.log))
+
+(defn- print-hint!
+  [data]
+  (some-> data ::hint js/console.log))
+
+(defn- print-group!
+  [message f]
+  (try
+    (js/console.group message)
+    (f)
+    (catch :default _ nil)
+    (finally
+      (js/console.groupEnd message))))
+
+(defn- on-error
   "A general purpose error handler."
   [error]
   (if (map? error)
     (ptk/handle-error error)
-
     (let [data (ex-data error)
           data (-> data
-                   (assoc :type (:type data :unexpected))
                    (assoc :hint (or (:hint data) (ex-message error)))
+                   (assoc ::instance error)
                    (assoc ::trace (.-stack error)))]
       (ptk/handle-error data))))
 
@@ -42,14 +75,11 @@
 (reset! st/on-error on-error)
 
 (defmethod ptk/handle-error :default
-  [{:keys [hint ::trace ::instance]}]
-  (let [message "Unhandled error"]
-    (ts/schedule #(st/emit! (rt/assign-exception instance)))
-
-    (js/console.group message)
-    (js/console.log hint)
-    (js/console.log trace)
-    (js/console.groupEnd message)))
+  [error]
+  (ts/schedule #(st/emit! (rt/assign-exception (::instance error))))
+  (print-group! "Unhandled error"
+                (fn []
+                  (print-trace! error))))
 
 ;; We receive a explicit authentication error; this explicitly clears
 ;; all profile data and redirect the user to the login page. This is
@@ -74,42 +104,39 @@
                          :type :error
                          :timeout 3000})))
 
-  ;; Print to the console some debug info.
-  (js/console.group "Validation Error:")
-  (ex/ignoring
-   (js/console.info
-    (pp/pprint-str (dissoc error :explain))))
-
-  (when-let [explain (:explain error)]
-    (js/console.group "Spec explain:")
-    (js/console.log explain)
-    (js/console.groupEnd "Spec explain:"))
-
-  (js/console.groupEnd "Validation Error:"))
+  (print-group! "Validation Error"
+                (fn []
+                  (print-error-data! error))))
 
 
-;; All the errors that happens on worker are handled here.
+;; This is a pure frontend error that can be caused by an active
+;; assertion (assertion that is preserved on production builds). From
+;; the user perspective this should be treated as internal error.
+(defmethod ptk/handle-error :assertion
+  [error]
+  (ts/schedule
+   #(st/emit! (msg/show {:content "Internal Assertion Error"
+                         :type :error
+                         :timeout 3000})))
+
+  (print-group! "Internal Assertion Error"
+                (fn []
+                  (print-trace! error)
+                  (print-error-data! error)
+                  (print-explain! error))))
+
+;; ;; All the errors that happens on worker are handled here.
 (defmethod ptk/handle-error :worker-error
-  [{:keys [code data hint] :as error}]
-  (let [hint (or hint (:hint data) (:message data) (d/name code))
-        info (pp/pprint-str (dissoc data :explain))
-        msg  (dm/str "Internal Worker Error: " hint)]
+  [error]
+  (ts/schedule
+   #(st/emit!
+     (msg/show {:content "Something wrong has happened (on worker)."
+                :type :error
+                :timeout 3000})))
 
-    (ts/schedule
-     #(st/emit!
-       (msg/show {:content "Something wrong has happened (on worker)."
-                  :type :error
-                  :timeout 3000})))
-
-    (js/console.group msg)
-    (js/console.info info)
-
-    (when-let [explain (:explain data)]
-      (js/console.group "Spec explain:")
-      (js/console.log explain)
-      (js/console.groupEnd "Spec explain:"))
-
-    (js/console.groupEnd msg)))
+  (print-group! "Internal Worker Error"
+                (fn []
+                  (print-error-data! error))))
 
 ;; Error on parsing an SVG
 ;; TODO: looks unused and deprecated
@@ -127,25 +154,6 @@
    #(st/emit! (msg/show {:content "There was an error with the comment"
                          :type :error
                          :timeout 3000}))))
-
-;; This is a pure frontend error that can be caused by an active
-;; assertion (assertion that is preserved on production builds). From
-;; the user perspective this should be treated as internal error.
-(defmethod ptk/handle-error :assertion
-  [{:keys [hint ::trace] :as error}]
-  (app.common.pprint/pprint error)
-  (let [message (dm/str "Internal Assertion Error: " hint)]
-    (ts/schedule
-     #(st/emit! (msg/show {:content "Internal error: assertion."
-                           :type :error
-                           :timeout 3000})))
-
-    ;; Print to the console some debugging info
-    (js/console.group message)
-    (js/console.log trace)
-    ;; (js/console.info context)
-    ;; (js/console.log (us/pretty-explain error))
-    (js/console.groupEnd message)))
 
 ;; That are special case server-errors that should be treated
 ;; differently.
@@ -182,48 +190,30 @@
 ;; uncontrolled error.
 
 (defmethod ptk/handle-error :server-error
-  [{:keys [data hint] :as error}]
-  (let [hint (or hint (:hint data) (:message data))
-        info (pp/pprint-str (dissoc data :explain))
-        msg  (dm/str "Internal Server Error: " hint)]
-
-    (ts/schedule
-     #(st/emit!
-       (msg/show {:content "Something wrong has happened (on backend)."
-                  :type :error
-                  :timeout 3000})))
-
-    (js/console.group msg)
-    (js/console.info info)
-
-    (when-let [explain (:explain data)]
-      (js/console.group "Spec explain:")
-      (js/console.log explain)
-      (js/console.groupEnd "Spec explain:"))
-
-    (js/console.groupEnd msg)))
-
-(defn on-unhandled-error
   [error]
+  (ts/schedule
+   #(st/emit!
+     (msg/show {:content "Something wrong has happened (on backend)."
+                :type :error
+                :timeout 3000})))
+
+  (print-group! "Server Error"
+                (fn []
+                  (print-error-data! error))))
+
+(defonce uncaught-error-handler
   (letfn [(is-ignorable-exception? [cause]
             (let [message (ex-message cause)]
               (or (= message "Possible side-effect in debug-evaluate")
                   (= message "Unexpected end of input")
-                  (str/starts-with? message "Unexpected token "))))]
+                  (str/starts-with? message "Unexpected token "))))
 
-    (when-not (is-ignorable-exception? error)
-      (let [data (ex-data error)
-            data (-> data
-                     (assoc :type (:type data :unhandled))
-                     (assoc :hint (or (:hint data) (ex-message error)))
-                     (assoc ::trace (.-stack error)))]
-        (ptk/handle-error data)))))
+          (on-unhandled-error [event]
+            (.preventDefault ^js event)
+            (when-let [error (unchecked-get event "error")]
+              (when-not (is-ignorable-exception? error)
+                (on-error error))))]
 
-;; (defonce uncaught-error-handler
-;;   (letfn [(on-error [event]
-;;             (.preventDefault ^js event)
-;;             (some-> (unchecked-get event "error")
-;;                     (on-unhandled-error)))]
-;;     (.addEventListener glob/window "error" on-error)
-;;     (fn []
-;;       (.removeEventListener glob/window "error" on-error))))
+    (.addEventListener glob/window "error" on-unhandled-error)
+    (fn []
+      (.removeEventListener glob/window "error" on-unhandled-error))))

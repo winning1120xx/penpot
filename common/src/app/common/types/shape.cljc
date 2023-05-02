@@ -286,8 +286,8 @@
      ::text-attrs]]
    ])
 
-(def valid-shape?
-  (sm/lazy-validator ::shape))
+(def shape?
+  (sm/pred-fn ::shape))
 
 ;; --- Initialization
 

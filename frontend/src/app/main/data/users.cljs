@@ -26,15 +26,17 @@
 
 ;; --- SCHEMAS
 
-;; FIXME: revisit if this still the correct way to proceed
-(sm/def! ::profile
+(def schema:profile
   [:map {:title "Profile"}
    [:id ::sm/uuid]
    [:created-at {:optional true} :any]
    [:fullname {:optional true} :string]
-   [:email {:optional true} ::sm/email]
+   [:email {:optional true} :string]
    [:lang {:optional true} :string]
    [:theme {:optional true} :string]])
+
+(def profile?
+  (sm/pred-fn schema:profile))
 
 ;; --- HELPERS
 
@@ -283,17 +285,9 @@
 
 ;; --- Update Profile
 
-(defn test1
-  []
-  (sm/assert! ::profile {}))
-
-(def profile?
-  (sm/pred-fn ::profile))
-
 (defn update-profile
   [data]
-  (js-debugger)
-  (sm/assert! ::profile data)
+  (dm/assert! (profile? data))
   (ptk/reify ::update-profile
     ptk/WatchEvent
     (watch [_ _ stream]
@@ -301,7 +295,6 @@
             on-success (:on-success mdata identity)
             on-error   (:on-error mdata rx/throw)]
         (->> (rp/cmd! :update-profile (dissoc data :props))
-             (rx/catch on-error)
              (rx/mapcat
               (fn [_]
                 (rx/merge
@@ -310,7 +303,9 @@
                       (rx/take 1)
                       (rx/tap on-success)
                       (rx/ignore))
-                 (rx/of (profile-fetched data))))))))))
+                 (rx/of (profile-fetched data)))))
+             (rx/catch on-error))))))
+
 
 
 ;; --- Request Email Change

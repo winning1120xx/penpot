@@ -105,7 +105,6 @@
         (= code :data-validation)
         (let [explain (::sm/explain data)
               payload (sm/humanize-data explain)]
-
           (l/error :hint "Data assertion error" :message (ex-message error) :cause error)
           {::yrs/status 500
            ::yrs/body   {:type :server-error

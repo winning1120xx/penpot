@@ -147,7 +147,10 @@
   [explain-data]
   (let [errors  (humanize explain-data)
         schema  (-> explain-data :schema m/form)
-        value   (-> explain-data error-values d/without-qualified)]
+        value   (-> explain-data error-values)
+        value   (if (map? value)
+                  (d/without-qualified value)
+                  value)]
     (array-map
      :schema schema
      :value value
@@ -189,17 +192,6 @@
   ([s] (lookup sr/default-registry s))
   ([registry s] (schema (mr/schema registry s))))
 
-;; (defn- get-assert-context
-;;   [env form sname]
-;;   (if-let [nsdata (:ns env)]
-;;     {:ns (str (:name nsdata))
-;;      :schema sname
-;;      :line (:line env)
-;;      :file (:file (:meta nsdata))}
-;;     {:ns   (str (ns-name *ns*))
-;;      :schema sname
-;;      :line (:line (meta form))}))
-
 (defmacro assert!
   [& [s value hint]]
   (when *assert*
@@ -215,12 +207,12 @@
                    ::explain e#}]
            (throw (ex-info h# d#)))))))
 
-(defmacro verify!
-  "A variant of `assert!` macro that evaluates always, independently
-  of the *assert* value."
-  [& params]
-  (binding [*assert* true]
-    `(assert! ~@params)))
+;; (defmacro verify!
+;;   "A variant of `assert!` macro that evaluates always, independently
+;;   of the *assert* value."
+;;   [& params]
+;;   (binding [*assert* true]
+;;     `(assert! ~@params)))
 
 (defn pred-fn
   [s]
@@ -230,13 +222,25 @@
     (fn [v]
       (let [result (v-fn v)]
         (when (and (not result) (true? dm/*assert-context*))
-          (let [hint (str "schema assert: " (pr-str s))
+          (let [hint (str "schema assert: " (pr-str (m/form s)))
                 exp  (e-fn v)]
             (throw (ex-info hint {:type :assertion
                                   :code :data-validation
                                   :hint hint
                                   ::explain exp}))))
          result))))
+
+(defn assert-fn
+  [s]
+  (let [f (pred-fn s)]
+    (fn [v]
+      (dm/assert! (f v)))))
+
+(defmacro verify-fn
+  [s]
+  (let [f (pred-fn s)]
+    (fn [v]
+      (dm/verify! (f v)))))
 
 (defn register! [type s]
   (let [s (if (map? s) (simple-schema s) s)]
@@ -286,7 +290,8 @@
 ;; FIXME: add proper email generator
 (def! ::email
   {:type ::email
-   :pred string?
+   :pred (fn [s]
+           (and (string? s) (re-seq email-re s)))
    :type-properties
    {:title "email"
     :description "string with valid email address"

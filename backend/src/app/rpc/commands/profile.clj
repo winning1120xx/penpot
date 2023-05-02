@@ -10,6 +10,7 @@
    [app.common.data :as d]
    [app.common.exceptions :as ex]
    [app.common.spec :as us]
+   [app.common.schema :as sm]
    [app.common.uuid :as uuid]
    [app.config :as cf]
    [app.db :as db]
@@ -66,19 +67,26 @@
 
 ;; --- MUTATION: Update Profile (own)
 
-(s/def ::email ::us/email)
-(s/def ::fullname ::us/not-empty-string)
-(s/def ::lang ::us/string)
-(s/def ::theme ::us/string)
+;; (s/def ::email ::us/email)
+;; (s/def ::fullname ::us/not-empty-string)
+;; (s/def ::lang ::us/string)
+;; (s/def ::theme ::us/string)
 
-(s/def ::update-profile
-  (s/keys :req [::rpc/profile-id]
-          :req-un [::fullname]
-          :opt-un [::lang ::theme]))
+;; (s/def ::update-profile
+;;   (s/keys :req [::rpc/profile-id]
+;;           :req-un [::fullname]
+;;           :opt-un [::lang ::theme]))
 
 (sv/defmethod ::update-profile
-  {::doc/added "1.0"}
+  {::doc/added "1.0"
+   ::sm/params [:map {:title "UpdateProfileParams"}
+                [:fullname {:min 1} :string]
+                [:lang {:optional true} :string]
+                [:theme {:optional true} :string]]}
   [{:keys [::db/pool] :as cfg} {:keys [::rpc/profile-id fullname lang theme] :as params}]
+
+  (sm/assert! :int fullname)
+
   (db/with-atomic [conn pool]
     ;; NOTE: we need to retrieve the profile independently if we use
     ;; it or not for explicit locking and avoid concurrent updates of
