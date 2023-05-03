@@ -13,7 +13,7 @@
    [app.common.pages.changes :as cpc]
    [app.common.pages.changes-builder :as pcb]
    [app.common.pages.helpers :as cph]
-   [app.common.spec :as us]
+   [app.common.schema :as sm]
    [app.common.types.shape-tree :as ctst]
    [app.common.uuid :as uuid]
    [app.main.data.workspace.state-helpers :as wsh]
@@ -21,14 +21,10 @@
    [app.main.store :as st]
    [app.main.worker :as uw]
    [beicon.core :as rx]
-   [cljs.spec.alpha :as s]
    [potok.core :as ptk]))
 
 ;; Change this to :info :debug or :trace to debug this module
 (log/set-level! :warn)
-
-(s/def ::coll-of-uuid
-  (s/every ::us/uuid))
 
 (defonce page-change? #{:add-page :mod-page :del-page :mov-page})
 (defonce update-layout-attr? #{:hidden})
@@ -57,8 +53,8 @@
   ([ids update-fn] (update-shapes ids update-fn nil))
   ([ids update-fn {:keys [reg-objects? save-undo? stack-undo? attrs ignore-tree page-id ignore-remote?]
                    :or {reg-objects? false save-undo? true stack-undo? false ignore-remote? false}}]
-   (us/assert ::coll-of-uuid ids)
-   (us/assert fn? update-fn)
+   (dm/assert! (sm/coll-of-uuid? ids))
+   (dm/assert! (fn? update-fn))
 
    (ptk/reify ::update-shapes
      ptk/WatchEvent

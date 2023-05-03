@@ -121,10 +121,9 @@
 (def schema:shortcuts
   [:map-of
    :keyword
-   :any
-   #_[:map
-    [:command [:or :string :vec]]
-    [:fn {:optional true} :fn]
+   [:map
+    [:command [:or :string [:vector :any]]]
+    [:fn {:optional true} fn?]
     [:tooltip {:optional true} :string]]])
 
 (def shortcuts?

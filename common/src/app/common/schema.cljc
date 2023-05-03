@@ -307,7 +307,7 @@
    :type-properties
    {:title "set[string]"
     :description "Set of Strings"
-    :error/message "should be an set of strings"
+    :error/message "should be a set of strings"
     :gen/gen (-> :string sg/generator sg/set)
     ::oapi/type "array"
     ::oapi/format "set"
@@ -323,7 +323,7 @@
    :type-properties
    {:title "set[email]"
     :description "Set of Emails"
-    :error/message "should be an set of emails"
+    :error/message "should be a set of emails"
     :gen/gen (-> ::email sg/generator sg/set)
     ::oapi/type "array"
     ::oapi/format "set"
@@ -338,7 +338,7 @@
    :type-properties
    {:title "set[uuid]"
     :description "Set of UUID"
-    :error/message "should be an set of UUID instances"
+    :error/message "should be a set of UUID instances"
     :gen/gen (-> ::uuid sg/generator sg/set)
     ::oapi/type "array"
     ::oapi/format "set"
@@ -346,6 +346,23 @@
     ::oapi/unique-items true
     ::decode (fn [v]
                (into #{} (map parse-uuid) (str/split v #"[\s,]+")))}})
+
+(def! ::coll-of-uuid
+  {:type ::set-of-uuid
+   :pred (partial every? uuid?)
+   :type-properties
+   {:title "[uuid]"
+    :description "Coll of UUID"
+    :error/message "should be a coll of UUID instances"
+    :gen/gen (-> ::uuid sg/generator sg/set)
+    ::oapi/type "array"
+    ::oapi/format "array"
+    ::oapi/items {:type "string" :format "uuid"}
+    ::oapi/unique-items false
+    ::decode (fn [v]
+               (into [] (map parse-uuid) (str/split v #"[\s,]+")))}})
+
+
 
 (def! ::one-of
   {:type ::one-of
@@ -434,6 +451,14 @@
     ::oapi/type "number"
     ::oapi/format "int64"}})
 
+(def! ::fn
+  {:type ::fn
+   :pred fn?
+   :type-properties
+   {:title "fn"
+    :description "function instance"
+    :error/message "expected a function instance"}})
+
 ;; ---- PREDICATES
 
 (def safe-int?
@@ -447,6 +472,9 @@
 
 (def set-of-uuid?
   (pred-fn ::set-of-uuid))
+
+(def coll-of-uuid?
+  (pred-fn ::coll-of-uuid))
 
 (def email?
   (pred-fn ::email))

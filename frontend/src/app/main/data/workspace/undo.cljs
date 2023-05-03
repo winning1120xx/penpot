@@ -7,7 +7,9 @@
 (ns app.main.data.workspace.undo
   (:require
    [app.common.data :as d]
-   [app.common.spec :as us]
+   [app.common.data.macros :as dm]
+   [app.common.pages.changes :as cpc]
+   [app.common.schema :as sm]
    [cljs.spec.alpha :as s]
    [potok.core :as ptk]))
 
@@ -16,10 +18,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; FIXME: add schemas
-;; (s/def ::undo-changes ::pcs/changes)
-;; (s/def ::redo-changes ::pcs/changes)
-;; (s/def ::undo-entry
-;;   (s/keys :req-un [::undo-changes ::redo-changes]))
+
+(def schema:undo-entry
+  [:map
+   [:undo-changes ::cpc/changes]
+   [:redo-changes ::cpc/changes]])
+
+(def undo-entry?
+  (sm/pred-fn schema:undo-entry))
 
 (def MAX-UNDO-SIZE 50)
 
@@ -76,7 +82,9 @@
 
 (defn append-undo
   [entry stack?]
-  ;; (us/assert ::undo-entry entry)
+  (dm/assert! (boolean? stack?))
+  (dm/assert! (undo-entry? entry))
+
   (ptk/reify ::append-undo
     ptk/UpdateEvent
     (update [_ state]
