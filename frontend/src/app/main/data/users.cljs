@@ -402,7 +402,10 @@
 
 (defn update-photo
   [file]
-  ;; (us/verify ::di/blob file)
+  (dm/assert!
+   "expected a valid blob for `file` param"
+   (di/blob? file))
+
   (ptk/reify ::update-photo
     ptk/WatchEvent
     (watch [_ _ _]

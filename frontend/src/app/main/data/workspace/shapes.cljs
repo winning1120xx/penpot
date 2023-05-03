@@ -100,9 +100,8 @@
 (defn add-shape
   ([attrs]
    (add-shape attrs {}))
-
   ([attrs {:keys [no-select? no-update-layout?]}]
-   ;; (us/verify ::shape-attrs attrs)
+   (dm/assert! (cts/shape-attrs? attrs))
    (ptk/reify ::add-shape
      ptk/WatchEvent
      (watch [it state _]

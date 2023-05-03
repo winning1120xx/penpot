@@ -27,38 +27,6 @@
    [cljs.spec.alpha :as s]
    [potok.core :as ptk]))
 
-;; --- SCHEMAS
-
-;; (s/def ::id ::us/uuid)
-;; (s/def ::name string?)
-;; (s/def ::team-id ::us/uuid)
-;; (s/def ::profile-id ::us/uuid)
-;; (s/def ::project-id ::us/uuid)
-;; (s/def ::created-at ::us/inst)
-;; (s/def ::modified-at ::us/inst)
-;; (s/def ::is-pinned ::us/boolean)
-
-;; (s/def ::team
-;;   (s/keys :req-un [::id
-;;                    ::name
-;;                    ::created-at
-;;                    ::modified-at]))
-
-;; (s/def ::project
-;;   (s/keys :req-un [::id
-;;                    ::name
-;;                    ::team-id
-;;                    ::created-at
-;;                    ::modified-at
-;;                    ::is-pinned]))
-
-;; (s/def ::file
-;;   (s/keys :req-un [::id
-;;                    ::name
-;;                    ::project-id]
-;;           :opt-un [::created-at
-;;                    ::modified-at]))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Initialization
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -853,7 +821,6 @@
 
 (defn file-created
   [{:keys [id project-id] :as file}]
-  ;; (us/verify ::file file)
   (ptk/reify ::file-created
     IDeref
     (-deref [_] {:file-id id

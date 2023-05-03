@@ -685,16 +685,12 @@
           (rx/of (reorder-selected-layout-child direction))
           (rx/of (nudge-selected-shapes direction shift?)))))))
 
-;; (s/def ::x number?)
-;; (s/def ::y number?)
-;; (s/def ::position
-;;   (s/keys :opt-un [::x ::y]))
-
 (defn update-position
   "Move shapes to a new position, from the sidebar options form."
   [id position]
+  (js/console.log "DEBUG" (pr-str position))
   (dm/assert! (uuid? id))
-  ;; (us/verify ::position position)
+
   (ptk/reify ::update-position
     ptk/WatchEvent
     (watch [_ state _]

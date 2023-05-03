@@ -9,7 +9,7 @@
    [app.common.data.macros :as dm]
    [app.common.logging :as log]
    [app.common.pages :as cp]
-   [app.common.pages.changes-spec :as pcs]
+   [app.common.pages.changes :as cpc]
    [app.common.spec :as us]
    [app.common.types.shape-tree :as ctst]
    [app.common.uuid :as uuid]
@@ -229,17 +229,16 @@
                        :status status
                        :updated-at (dt/now)))))))
 
-;; (s/def ::revn ::us/integer)
-;; (s/def ::shapes-changes-persisted
-;;   (s/keys :req-un [::revn ::pcs/changes]))
 
 (defn shapes-persisted-event? [event]
   (= (ptk/type event) ::changes-persisted))
 
 (defn shapes-changes-persisted
-  [file-id {:keys [revn changes] :as params}]
+  [file-id {:keys [revn changes]}]
   (dm/assert! (uuid? file-id))
-  ;; (us/verify! ::shapes-changes-persisted params)
+  (dm/assert! (int? revn))
+  (dm/assert! (cpc/changes? changes))
+
   (ptk/reify ::shapes-changes-persisted
     ptk/UpdateEvent
     (update [_ state]

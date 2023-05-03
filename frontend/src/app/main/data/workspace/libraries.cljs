@@ -908,7 +908,6 @@
 
 (defn- shared-files-fetched
   [files]
-  ;; (us/verify! (s/every ::file) files)
   (ptk/reify ::shared-files-fetched
     ptk/UpdateEvent
     (update [_ state]

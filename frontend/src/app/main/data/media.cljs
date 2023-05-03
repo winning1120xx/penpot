@@ -8,6 +8,7 @@
   (:require
    [app.common.exceptions :as ex]
    [app.common.media :as cm]
+   [app.common.schema :as sm]
    [app.main.data.messages :as dm]
    [app.main.store :as st]
    [app.util.i18n :refer [tr]]
