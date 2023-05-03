@@ -5,7 +5,7 @@
 ;; Copyright (c) KALEIDOS INC
 
 (ns app.common.schema
-  (:refer-clojure :exclude [deref merge])
+  (:refer-clojure :exclude [deref merge parse-uuid])
   #?(:cljs (:require-macros [app.common.schema :refer [ignoring]]))
   (:require
    [app.common.data :as d]
@@ -267,6 +267,10 @@
 (def uuid-rx
   #"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 
+(defn parse-uuid
+  [s]
+  (some->> s (re-matches uuid-rx) uuid/uuid))
+
 (def! ::uuid
   {:type ::uuid
    :pred uuid?
@@ -277,7 +281,7 @@
     :gen/gen (sg/uuid)
     ::oapi/type "string"
     ::oapi/format "uuid"
-    ::oapi/decode #(uuid/uuid (re-matches uuid-rx %))}})
+    ::oapi/decode parse-uuid}})
 
 (def email-re #"[a-zA-Z0-9_.+-\\\\]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+")
 
@@ -322,7 +326,7 @@
 
 
 (def! ::set-of-emails
-  {:type ::set-of-strings
+  {:type ::set-of-emails
    :pred #(and (set? %) (every? string? %))
    :type-properties
    {:title "set[email]"
@@ -335,6 +339,21 @@
     ::oapi/unique-items true
     ::decode (fn [v]
                (into #{} (map parse-email) (str/split v #"[\s,]+")))}})
+
+(def! ::set-of-uuid
+  {:type ::set-of-uuid
+   :pred #(and (set? %) (every? uuid? %))
+   :type-properties
+   {:title "set[uuid]"
+    :description "Set of UUID"
+    :error/message "should be an set of UUID instances"
+    :gen/gen (-> ::uuid sg/generator sg/set)
+    ::oapi/type "array"
+    ::oapi/format "set"
+    ::oapi/items {:type "string" :format "uuid"}
+    ::oapi/unique-items true
+    ::decode (fn [v]
+               (into #{} (map parse-uuid) (str/split v #"[\s,]+")))}})
 
 (def! ::one-of
   {:type ::one-of
