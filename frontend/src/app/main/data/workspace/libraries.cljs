@@ -118,7 +118,7 @@
         color (-> color
                   (assoc :id id)
                   (assoc :name (default-color-name color)))]
-    (us/assert ::ctc/color color)
+    ;; (us/assert ::ctc/color color)
     (ptk/reify ::add-color
       IDeref
       (-deref [_] color)
@@ -132,7 +132,7 @@
 
 (defn add-recent-color
   [color]
-  (us/assert! ::ctc/recent-color color)
+  ;; (us/assert! ::ctc/recent-color color)
   (ptk/reify ::add-recent-color
     ptk/WatchEvent
     (watch [it _ _]
@@ -162,7 +162,7 @@
 
 (defn update-color
   [color file-id]
-  (us/assert ::ctc/color color)
+  ;; (us/assert ::ctc/color color)
   (dm/assert! (uuid? file-id))
   (ptk/reify ::update-color
     ptk/WatchEvent
@@ -198,7 +198,7 @@
 
 (defn add-media
   [media]
-  (us/assert ::ctfm/media-object media)
+  ;; (us/assert ::ctfm/media-object media)
   (ptk/reify ::add-media
     ptk/WatchEvent
     (watch [it _ _]
@@ -210,7 +210,7 @@
 (defn rename-media
   [id new-name]
   (dm/assert! (uuid? id))
-  (us/assert ::us/string new-name)
+  (dm/assert! (string? new-name))
   (ptk/reify ::rename-media
     ptk/WatchEvent
     (watch [it state _]
@@ -282,7 +282,7 @@
   [file-id id new-name]
   (dm/assert! (uuid? file-id))
   (dm/assert! (uuid? id))
-  (us/assert ::us/string new-name)
+  (dm/assert! (string? new-name))
   (ptk/reify ::rename-typography
     ptk/WatchEvent
     (watch [it state _]
@@ -346,7 +346,7 @@
   "Rename the component with the given id, in the current file library."
   [id new-name]
   (dm/assert! (uuid? id))
-  (us/assert ::us/string new-name)
+  (dm/assert! (string? new-name))
   (ptk/reify ::rename-component
     ptk/WatchEvent
     (watch [it state _]
@@ -466,7 +466,8 @@
   [file-id component-id position]
   (dm/assert! (uuid? file-id))
   (dm/assert! (uuid? component-id))
-  (us/assert ::gpt/point position)
+  (dm/assert! (gpt/point? position))
+
   (ptk/reify ::instantiate-component
     ptk/WatchEvent
     (watch [it state _]

@@ -46,14 +46,15 @@
 (declare zoom-to-fill)
 (declare zoom-to-fit)
 
+(def schema:initialize
+  [:map
+   [:file-id ::sm/uuid]
+   [:share-id {:optional true} ::sm/uuid]
+   [:page-id {:optional true} ::sm/uuid]])
+
 (defn initialize
   [{:keys [file-id share-id] :as params}]
-  (sm/assert!
-   [:map
-    [:file-id ::sm/uuid]
-    [:share-id {:optional true} ::sm/uuid]
-    [:page-id {:optional true} ::sm/uuid]]
-   params)
+  (dm/assert! (sm/valid? schema:initialize params))
   (ptk/reify ::initialize
     ptk/UpdateEvent
     (update [_ state]
@@ -90,15 +91,15 @@
 
 ;; --- Data Fetching
 
+(def schema:fetch-bundle
+  [:map
+   [:page-id ::sm/uuid]
+   [:file-id ::sm/uuid]
+   [:share-id {:optional true} ::sm/uuid]])
+
 (defn- fetch-bundle
   [{:keys [file-id share-id] :as params}]
-  (sm/assert!
-   [:map
-    [:page-id ::sm/uuid]
-    [:file-id ::sm/uuid]
-    [:share-id {:optional true} ::sm/uuid]]
-   params)
-
+  (dm/assert! (sm/valid? schema:fetch-bundle params))
   (ptk/reify ::fetch-bundle
     ptk/WatchEvent
     (watch [_ state _]

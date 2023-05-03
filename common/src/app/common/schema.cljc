@@ -190,28 +190,6 @@
   ([s] (lookup sr/default-registry s))
   ([registry s] (schema (mr/schema registry s))))
 
-(defmacro assert!
-  [& [s value hint]]
-  (when *assert*
-    `(let [s# (schema ~s)
-           v# ~value
-           h# ~(or hint (str "schema assert: " (pr-str s)))]
-       (if (m/validate s# v#)
-         v#
-         (let [e# (explain s# v#)
-               d# {:type :assertion
-                   :code :data-validation
-                   :hint h#
-                   ::explain e#}]
-           (throw (ex-info h# d#)))))))
-
-;; (defmacro verify!
-;;   "A variant of `assert!` macro that evaluates always, independently
-;;   of the *assert* value."
-;;   [& params]
-;;   (binding [*assert* true]
-;;     `(assert! ~@params)))
-
 (defn pred-fn
   [s]
   (let [s    (schema s)
@@ -227,6 +205,20 @@
                                   :hint hint
                                   ::explain exp}))))
          result))))
+
+
+(defn valid?
+  [s v]
+  (let [result (validate s v)]
+    (when (and (not result) (true? dm/*assert-context*))
+      (let [hint (str "schema assert: " (pr-str (m/form s)))
+            exp  (explain s v)]
+        (throw (ex-info hint {:type :assertion
+                              :code :data-validation
+                              :hint hint
+                              ::explain exp}))))
+    result))
+
 
 (defn assert-fn
   [s]
@@ -452,6 +444,9 @@
 
 (def set-of-emails?
   (pred-fn ::set-of-emails))
+
+(def set-of-uuid?
+  (pred-fn ::set-of-uuid))
 
 (def email?
   (pred-fn ::email))

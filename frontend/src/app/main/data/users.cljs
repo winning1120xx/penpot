@@ -334,7 +334,7 @@
 
 ;; --- Update Password (Form)
 
-(sm/def! ::update-password
+(def schema:update-password
   [:map {:closed true}
    [:password-1 :string]
    [:password-2 :string]
@@ -342,7 +342,7 @@
 
 (defn update-password
   [data]
-  (sm/assert! ::update-password data)
+  (dm/assert! (sm/valid? schema:update-password data))
   (ptk/reify ::update-password
     ptk/WatchEvent
     (watch [_ _ _]
@@ -472,14 +472,14 @@
 
 ;; --- EVENT: request-profile-recovery
 
-(sm/def! ::request-profile-recovery
+(def schema:request-profile-recovery
   [:map {:closed true}
    [:email ::sm/email]])
 
 ;; FIXME: check if we can use schema for proper filter
 (defn request-profile-recovery
   [{:keys [email] :as data}]
-  (sm/assert! ::request-profile-recovery data)
+  (dm/assert! (sm/valid? schema:request-profile-recovery data))
   (ptk/reify ::request-profile-recovery
     ptk/WatchEvent
     (watch [_ _ _]
@@ -497,15 +497,14 @@
 (s/def ::recover-profile
   (s/keys :req-un [::password ::token]))
 
-(sm/def! ::recover-profile
+(def schema:recover-profile
   [:map {:closed true}
    [:password :string]
    [:token :string]])
 
-
 (defn recover-profile
   [data]
-  (sm/assert! ::recover-profile data)
+  (dm/assert! (sm/valid? ::recover-profile data))
   (ptk/reify ::recover-profile
     ptk/WatchEvent
     (watch [_ _ _]

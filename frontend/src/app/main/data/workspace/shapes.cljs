@@ -13,6 +13,7 @@
    [app.common.pages.changes-builder :as pcb]
    [app.common.pages.helpers :as cph]
    [app.common.spec :as us]
+   [app.common.schema :as sm]
    [app.common.types.component :as ctk]
    [app.common.types.container :as ctn]
    [app.common.types.page :as ctp]
@@ -165,7 +166,7 @@
 (defn delete-shapes
   ([ids] (delete-shapes nil ids))
   ([page-id ids]
-   (us/assert ::us/set-of-uuid ids)
+   (dm/assert! (sm/set-of-uuid? ids))
    (ptk/reify ::delete-shapes
      ptk/WatchEvent
      (watch [it state _]
@@ -447,7 +448,11 @@
   (dm/assert!
    "expected valid coll of uuids"
    (every? uuid? ids))
-  ;; (us/assert ::shape-attrs flags)
+
+  (dm/assert!
+   "expected valid shape-attrs value for `flags`"
+   (cts/shape-attrs? flags))
+
   (ptk/reify ::update-shape-flags
     ptk/WatchEvent
     (watch [_ state _]
