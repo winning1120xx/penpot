@@ -26,8 +26,6 @@
 
 (defn validate
   [s value]
-
-  (prn "validate" s value)
   (m/validate s value {:registry sr/default-registry}))
 
 (defn explain
@@ -414,17 +412,16 @@
                  {:title "contains"
                   :description "contains predicate"}}))})
 
-;; FIXME: add proper inst type
-;; (def! ::inst
-;;   {:type ::inst
-;;    :type-properties
-;;    {:title "inst"
-;;     :description "Satisfies Inst protocol"
-;;     :error/message "expected to be number in safe range"
-;;     :gen/gen (sg/small-double)
-;;     ::oapi/type "number"
-;;     ::oapi/format "double"
-;;     ::oapi/decode parse-double}})
+(def! ::inst
+  {:type ::inst
+   :pred inst?
+   :type-properties
+   {:title "inst"
+    :description "Satisfies Inst protocol"
+    :error/message "expected to be number in safe range"
+    :gen/gen (sg/small-int)
+    ::oapi/type "number"
+    ::oapi/format "int64"}})
 
 ;; ---- PREDICATES
 
