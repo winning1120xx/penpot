@@ -73,6 +73,12 @@
    ::color
    [::sm/contains-any {:strict true} [:color :gradient]]])
 
+(def color?
+  (sm/pred-fn ::color))
+
+(def recent-color?
+  (sm/pred-fn ::recent-color))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; HELPERS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

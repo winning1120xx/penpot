@@ -19,8 +19,8 @@
 
 ;; FIXME: add schemas
 
-(def schema:undo-entry
-  [:map
+(def schema:undo-entry :any
+  #_[:map
    [:undo-changes ::cpc/changes]
    [:redo-changes ::cpc/changes]])
 

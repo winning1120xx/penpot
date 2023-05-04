@@ -27,7 +27,7 @@
    [cuerdas.core :as str]
    [potok.core :as ptk]))
 
-(defn- print-error-data!
+(defn- print-data!
   [data]
   (-> data
       (dissoc ::sm/explain)
@@ -77,9 +77,10 @@
 (defmethod ptk/handle-error :default
   [error]
   (ts/schedule #(st/emit! (rt/assign-exception (::instance error))))
-  (print-group! "Unhandled error"
+  (print-group! "Unhandled Error"
                 (fn []
-                  (print-trace! error))))
+                  (print-trace! error)
+                  (print-data! error))))
 
 ;; We receive a explicit authentication error; this explicitly clears
 ;; all profile data and redirect the user to the login page. This is
@@ -106,7 +107,7 @@
 
   (print-group! "Validation Error"
                 (fn []
-                  (print-error-data! error))))
+                  (print-data! error))))
 
 
 ;; This is a pure frontend error that can be caused by an active
@@ -122,7 +123,7 @@
   (print-group! "Internal Assertion Error"
                 (fn []
                   (print-trace! error)
-                  (print-error-data! error)
+                  (print-data! error)
                   (print-explain! error))))
 
 ;; ;; All the errors that happens on worker are handled here.
@@ -136,7 +137,7 @@
 
   (print-group! "Internal Worker Error"
                 (fn []
-                  (print-error-data! error))))
+                  (print-data! error))))
 
 ;; Error on parsing an SVG
 ;; TODO: looks unused and deprecated
@@ -199,7 +200,7 @@
 
   (print-group! "Server Error"
                 (fn []
-                  (print-error-data! error))))
+                  (print-data! error))))
 
 (defonce uncaught-error-handler
   (letfn [(is-ignorable-exception? [cause]

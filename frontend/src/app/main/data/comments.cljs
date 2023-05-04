@@ -9,14 +9,12 @@
    [app.common.data :as d]
    [app.common.data.macros :as dm]
    [app.common.geom.point :as gpt]
-   [app.common.spec :as us]
    [app.common.schema :as sm]
    [app.common.types.shape-tree :as ctst]
    [app.common.uuid :as uuid]
    [app.main.data.workspace.state-helpers :as wsh]
    [app.main.repo :as rp]
    [beicon.core :as rx]
-   [cljs.spec.alpha :as s]
    [potok.core :as ptk]))
 
 (def schema:comment-thread
@@ -464,7 +462,7 @@
 (defn detach-comment-thread
   "Detach comment threads that are inside a frame when that frame is deleted"
   [ids]
-  ;; (us/assert! ::us/coll-of-uuid ids)
+  (dm/assert! (sm/coll-of-uuid? ids))
   (ptk/reify ::detach-comment-thread
     ptk/WatchEvent
     (watch [_ state _]

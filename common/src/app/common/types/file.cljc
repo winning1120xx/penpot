@@ -19,7 +19,6 @@
    [app.common.types.component :as ctk]
    [app.common.types.components-list :as ctkl]
    [app.common.types.container :as ctn]
-   [app.common.types.file.media-object :as ctfm]
    [app.common.types.page :as ctp]
    [app.common.types.pages-list :as ctpl]
    [app.common.types.shape-tree :as ctst]
@@ -57,6 +56,12 @@
    [:media {:optional true}
     [:map-of {:gen/max 5} ::sm/uuid ::media-object]]
    ])
+
+(def file-data?
+  (sm/pred-fn ::data))
+
+(def media-object?
+  (sm/pred-fn ::media-object))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; INITIALIZATION

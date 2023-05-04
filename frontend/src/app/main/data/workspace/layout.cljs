@@ -7,7 +7,8 @@
 (ns app.main.data.workspace.layout
   "Workspace layout management events and helpers."
   (:require
-   [app.common.spec :as us]
+   [app.common.data.macros :as dm]
+   [app.common.schema :as sm]
    [app.util.storage :refer [storage]]
    [cljs.spec.alpha :as s]
    [clojure.set :as set]
@@ -44,7 +45,8 @@
    {:del #{:document-history :assets}
     :add #{:sitemap :layers}}})
 
-(s/def ::options-mode #{:design :prototype :inspect})
+(def valid-options-mode
+  #{:design :prototype :inspect})
 
 (def default-layout
   #{:sitemap
@@ -114,7 +116,7 @@
 
 (defn set-options-mode
   [mode]
-  (us/assert ::options-mode mode)
+  (dm/assert! (contains? valid-options-mode mode))
   (ptk/reify ::set-options-mode
     ptk/UpdateEvent
     (update [_ state]

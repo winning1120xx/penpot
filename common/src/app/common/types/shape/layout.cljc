@@ -8,10 +8,10 @@
   (:require
    [app.common.data :as d]
    [app.common.data.macros :as dm]
-   [app.common.spec :as us]
    [app.common.schema :as sm]
-   [app.common.uuid :as uuid]
-   [clojure.spec.alpha :as s]))
+   [app.common.uuid :as uuid]))
+
+;; FIXME: need proper schemas
 
 ;; :layout                 ;; :flex, :grid in the future
 ;; :layout-flex-dir        ;; :row, :row-reverse, :column, :column-reverse
@@ -40,8 +40,6 @@
 ;; :layout-item-min-w       ;; num
 ;; :layout-item-absolute
 ;; :layout-item-z-index
-
-
 
 ;; (s/def ::layout  #{:flex :grid})
 
@@ -152,6 +150,14 @@
 ;;                    ::layout-item-absolute
 ;;                    ::layout-item-z-index]))
 
+(def schema:grid-definition
+  [:map {:title "LayoutGridDefinition"}
+   [:type [::sm/one-of #{:percent :flex :auto :fixed}]]
+   [:value {:optional true} [:maybe ::sm/safe-int]]])
+
+(def grid-definition?
+  (sm/pred-fn schema:grid-definition))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; SCHEMAS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -161,8 +167,6 @@
 
 (sm/def! ::layout
   [::sm/one-of valid-layouts])
-
-
 
 (defn flex-layout?
   ([objects id]
@@ -551,7 +555,10 @@
 ;; Adding a track creates the cells. We should check the shapes that are not tracked (with default values) and assign to the correct tracked values
 (defn add-grid-column
   [parent value]
-  (us/assert ::grid-definition value)
+  (dm/assert!
+   "expected a valid grid definition for `value`"
+   (grid-definition? value))
+
   (let [rows (:layout-grid-rows parent)
         new-col-num (count (:layout-grid-columns parent))
 
@@ -572,7 +579,10 @@
 
 (defn add-grid-row
   [parent value]
-  (us/assert ::grid-definition value)
+  (dm/assert!
+   "expected a valid grid definition for `value`"
+   (grid-definition? value))
+
   (let [cols (:layout-grid-columns parent)
         new-row-num (inc (count (:layout-grid-rows parent)))
 

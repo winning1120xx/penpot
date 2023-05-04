@@ -9,12 +9,10 @@
    [app.common.data :as d]
    [app.common.files.features :as ffeat]
    [app.common.schema :as sm]
-   [app.common.spec :as us]
    [app.common.types.color :as-alias ctc]
    [app.common.types.grid :as-alias ctpg]
    [app.common.types.shape :as cts]
-   [app.common.uuid :as uuid]
-   [clojure.spec.alpha :as s]))
+   [app.common.uuid :as uuid]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; SCHEMAS
@@ -39,20 +37,51 @@
 (def guide?
   (sm/pred-fn ::guide))
 
+(sm/def! ::saved-grids
+  [:schema {:registry
+            {::color
+             [:map
+              [:color ::ctc/rgb-color]
+              [:opacity ::sm/safe-number]]
+
+             ::type
+             [::sm/one-of #{:stretch :left :center :right}]
+
+             ::square
+             [:map
+              [:size [:maybe ::sm/safe-number]]
+              [:color ::color]]
+
+             ::column
+             [:map
+              [:color ::color]
+              [:size {:optional true} [:maybe ::sm/safe-number]]
+              [:type {:optional true} ::type]
+              [:item-length {:optional true} [:maybe ::sm/safe-number]]
+              [:margin {:optional true} [:maybe ::sm/safe-number]]
+              [:gutter {:optional true} [:maybe ::sm/safe-number]]]}}
+   [:map
+    [:square {:optional true} ::square]
+    [:column {:optional true} ::column]
+    [:row {:optional true} ::column]]])
+
 (sm/def! ::page
   [:map {:title "FilePage"}
    [:id ::sm/uuid]
    [:name :string]
-   [:objects
+   #_[:objects
     [:map-of {:gen/max 5} ::sm/uuid ::cts/shape]]
    [:options
     [:map {:title "PageOptions"}
      [:background {:optional true} ::ctc/rgb-color]
-     [:saved-grids {:optional true} ::ctpg/saved-grids]
+     [:saved-grids {:optional true} ::saved-grids]
      [:flows {:optional true}
       [:vector {:gen/max 2} ::flow]]
      [:guides {:optional true}
       [:vector {:gen/max 2} ::guide]]]]])
+
+(def page?
+  (sm/pred-fn ::page))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; INIT & HELPERS

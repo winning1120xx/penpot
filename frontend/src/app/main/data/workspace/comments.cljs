@@ -148,7 +148,7 @@
 ;; Move comment threads that are inside a frame when that frame is moved"
 (defmethod ptk/resolve ::move-frame-comment-threads
   [_ ids]
-  ;; (us/assert! ::us/coll-of-uuid ids)
+  (dm/assert! (sm/coll-of-uuid? ids))
   (ptk/reify ::move-frame-comment-threads
     ptk/WatchEvent
     (watch [_ state _]

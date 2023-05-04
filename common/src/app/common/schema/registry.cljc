@@ -10,7 +10,7 @@
    [malli.registry :as mr]
    [malli.util :as mu]))
 
-(def registry (atom {}))
+(defonce registry (atom {}))
 
 (def default-registry
   (mr/composite-registry

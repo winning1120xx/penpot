@@ -14,15 +14,12 @@
    [app.common.pages :as cp]
    [app.common.pages.changes :as ch]
    [app.common.pages.changes-builder :as pcb]
-   [app.common.pages.changes-spec :as pcs]
    [app.common.pages.helpers :as cph]
-   [app.common.spec :as us]
    [app.common.types.color :as ctc]
    [app.common.types.component :as ctk]
    [app.common.types.components-list :as ctkl]
    [app.common.types.container :as ctn]
    [app.common.types.file :as ctf]
-   [app.common.types.file.media-object :as ctfm]
    [app.common.types.typography :as ctt]
    [app.common.uuid :as uuid]
    [app.main.data.dashboard :as dd]
@@ -43,14 +40,10 @@
    [app.util.router :as rt]
    [app.util.time :as dt]
    [beicon.core :as rx]
-   [cljs.spec.alpha :as s]
    [potok.core :as ptk]))
 
 ;; Change this to :info :debug or :trace to debug this module, or :warn to reset to default
 (log/set-level! :warn)
-
-;; FIXME: spec -> schema
-;; (s/def ::file ::dd/file)
 
 (defn- log-changes
   [changes file]
@@ -118,7 +111,7 @@
         color (-> color
                   (assoc :id id)
                   (assoc :name (default-color-name color)))]
-    ;; (us/assert ::ctc/color color)
+    (dm/assert! (ctc/color? color))
     (ptk/reify ::add-color
       IDeref
       (-deref [_] color)
@@ -132,7 +125,7 @@
 
 (defn add-recent-color
   [color]
-  ;; (us/assert! ::ctc/recent-color color)
+  (dm/assert! (ctc/recent-color? color))
   (ptk/reify ::add-recent-color
     ptk/WatchEvent
     (watch [it _ _]
@@ -162,8 +155,9 @@
 
 (defn update-color
   [color file-id]
-  ;; (us/assert ::ctc/color color)
+  (dm/assert! (ctc/color? color))
   (dm/assert! (uuid? file-id))
+
   (ptk/reify ::update-color
     ptk/WatchEvent
     (watch [it state _]
@@ -198,7 +192,7 @@
 
 (defn add-media
   [media]
-  ;; (us/assert ::ctfm/media-object media)
+  (dm/assert! (ctf/media-object? media))
   (ptk/reify ::add-media
     ptk/WatchEvent
     (watch [it _ _]

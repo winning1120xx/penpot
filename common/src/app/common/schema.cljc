@@ -13,12 +13,13 @@
    [app.common.schema.generators :as sg]
    [app.common.schema.openapi :as-alias oapi]
    [app.common.schema.registry :as sr]
+   [app.common.uri :as u]
    [app.common.uuid :as uuid]
    [clojure.test.check.generators :as tgen]
    [cuerdas.core :as str]
    [malli.core :as m]
-   [malli.error :as me]
    [malli.dev.pretty :as mdp]
+   [malli.error :as me]
    [malli.generator :as mg]
    [malli.registry :as mr]
    [malli.transform :as mt]
@@ -242,6 +243,7 @@
 
 ;; --- GENERATORS
 
+;; FIXME: replace with sg/subseq
 (defn gen-set-from-choices
   [choices]
   (->> tgen/nat
@@ -452,12 +454,30 @@
     ::oapi/format "int64"}})
 
 (def! ::fn
-  {:type ::fn
-   :pred fn?
+  [:schema fn?])
+
+(def! ::word-string
+  {:type ::word-string
+   :pred #(and (string? %) (not (str/blank? %)))
    :type-properties
-   {:title "fn"
-    :description "function instance"
-    :error/message "expected a function instance"}})
+   {:title "string"
+    :description "string"
+    :error/message "expected a non empty string"
+    :gen/gen (sg/word-string)
+    ::oapi/type "string"
+    ::oapi/format "string"}})
+
+(def! ::uri
+  {:type ::uri
+   :pred u/uri?
+   :type-properties
+   {:title "uri"
+    :description "URI formatted string"
+    :error/message "expected URI instance"
+    :gen/gen (sg/uri)
+    ::oapi/type "string"
+    ::oapi/format "uri"
+    ::oapi/decode (comp u/uri str/trim)}})
 
 ;; ---- PREDICATES
 
@@ -478,5 +498,3 @@
 
 (def email?
   (pred-fn ::email))
-
-

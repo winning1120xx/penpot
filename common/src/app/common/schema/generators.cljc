@@ -7,9 +7,11 @@
 (ns app.common.schema.generators
   (:refer-clojure :exclude [set subseq uuid])
   (:require
-   [clojure.test.check.generators :as tgen]
    [app.common.schema.registry :as sr]
+   [app.common.uri :as u]
    [app.common.uuid :as uuid]
+   [clojure.test.check.generators :as tgen]
+   [cuerdas.core :as str]
    [malli.core :as m]
    [malli.generator :as mg]
    [malli.util :as mu]))
@@ -39,6 +41,22 @@
 (defn small-int
   [& {:keys [min max] :or {min -100 max 100}}]
   (tgen/large-integer* {:min min, :max max}))
+
+(defn word-string
+  []
+  (->> (tgen/such-that #(re-matches #"\w+" %)
+                       tgen/string-alphanumeric
+                       50)
+       (tgen/such-that (complement str/blank?))))
+
+(defn uri
+  []
+  (tgen/let [scheme (tgen/elements ["http" "https"])
+             domain (as-> (word-string) $
+                      (tgen/such-that (fn [x] (> (count x) 5)) $ 100)
+                      (tgen/fmap str/lower $))
+             ext    (tgen/elements ["net" "com" "org" "app" "io"])]
+    (u/uri (str scheme "://" domain "." ext))))
 
 ;; FIXME: revisit
 (defn uuid

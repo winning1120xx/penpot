@@ -9,9 +9,9 @@
    [app.common.data :as d]
    [app.common.data.macros :as dm]
    [app.common.pages :as cp]
-   [app.common.spec :as us]
    [app.common.schema :as sm]
    [app.common.uuid :as uuid]
+   [app.common.uri :as u]
    [app.config :as cf]
    [app.main.data.events :as ev]
    [app.main.data.fonts :as df]
@@ -24,7 +24,6 @@
    [app.util.timers :as tm]
    [app.util.webapi :as wapi]
    [beicon.core :as rx]
-   [cljs.spec.alpha :as s]
    [potok.core :as ptk]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -569,7 +568,7 @@
   (dm/assert! (uuid? id))
   (dm/assert! (contains? valid-mtypes mtype))
   (dm/assert! (boolean? is-active))
-  ;; (us/assert! ::us/uri uri)
+  (dm/assert! (u/uri? uri))
   (ptk/reify ::update-team-webhook
     ptk/WatchEvent
     (watch [_ state _]
@@ -586,7 +585,8 @@
   [{:keys [uri mtype is-active] :as params}]
   (dm/assert! (contains? valid-mtypes mtype))
   (dm/assert! (boolean? is-active))
-  ;; (us/assert! ::us/uri uri)
+  (dm/assert! (u/uri? uri))
+
   (ptk/reify ::create-team-webhook
     ptk/WatchEvent
     (watch [_ state _]
