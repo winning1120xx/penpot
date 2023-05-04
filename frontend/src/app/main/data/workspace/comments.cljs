@@ -11,7 +11,6 @@
    [app.common.geom.shapes :as gsh]
    [app.common.pages.changes-builder :as pcb]
    [app.common.schema :as sm]
-   [app.common.spec :as us]
    [app.common.types.shape-tree :as ctst]
    [app.main.data.comments :as dcm]
    [app.main.data.workspace.changes :as dwc]

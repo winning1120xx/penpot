@@ -12,7 +12,6 @@
    [app.common.geom.shapes :as gsh]
    [app.common.pages.changes-builder :as pcb]
    [app.common.pages.helpers :as cph]
-   [app.common.spec :as us]
    [app.common.schema :as sm]
    [app.common.types.component :as ctk]
    [app.common.types.container :as ctn]
@@ -31,7 +30,6 @@
    [app.main.features :as features]
    [app.main.streams :as ms]
    [beicon.core :as rx]
-   [cljs.spec.alpha :as s]
    [potok.core :as ptk]))
 
 (defn get-shape-layer-position

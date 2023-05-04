@@ -7,14 +7,8 @@
 (ns app.main.errors
   "Generic error handling"
   (:require
-   [app.common.data :as d]
-   [app.common.data.macros :as dm]
    [app.common.pprint :as pp]
-   [app.common.exceptions :as ex]
-   [app.common.pprint :as pp]
-   [app.common.spec :as us]
    [app.common.schema :as sm]
-   [app.config :as cf]
    [app.main.data.messages :as msg]
    [app.main.data.modal :as modal]
    [app.main.data.users :as du]
@@ -46,10 +40,6 @@
   [data]
   (some-> data ::trace js/console.log))
 
-(defn- print-hint!
-  [data]
-  (some-> data ::hint js/console.log))
-
 (defn- print-group!
   [message f]
   (try
@@ -59,7 +49,7 @@
     (finally
       (js/console.groupEnd message))))
 
-(defn- on-error
+(defn on-error
   "A general purpose error handler."
   [error]
   (if (map? error)

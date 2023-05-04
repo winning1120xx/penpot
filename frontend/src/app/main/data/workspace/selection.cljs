@@ -29,7 +29,6 @@
    [app.main.streams :as ms]
    [app.main.worker :as uw]
    [beicon.core :as rx]
-   [cljs.spec.alpha :as s]
    [clojure.set :as set]
    [linked.set :as lks]
    [potok.core :as ptk]))

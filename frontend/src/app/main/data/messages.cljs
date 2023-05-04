@@ -10,7 +10,6 @@
    [app.common.data.macros :as dm]
    [app.common.schema :as sm]
    [beicon.core :as rx]
-   [cljs.spec.alpha :as s]
    [potok.core :as ptk]))
 
 (declare hide)

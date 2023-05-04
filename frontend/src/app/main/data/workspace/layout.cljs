@@ -8,13 +8,11 @@
   "Workspace layout management events and helpers."
   (:require
    [app.common.data.macros :as dm]
-   [app.common.schema :as sm]
    [app.util.storage :refer [storage]]
-   [cljs.spec.alpha :as s]
    [clojure.set :as set]
    [potok.core :as ptk]))
 
-(s/def ::flag
+(def valid-flags
   #{:sitemap
     :layers
     :comments

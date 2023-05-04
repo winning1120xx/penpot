@@ -11,7 +11,6 @@
    [app.common.data.macros :as dm]
    [app.common.logging :as log]
    [app.common.media :as cm]
-   [app.common.schema :as sm]
    [app.common.uuid :as uuid]
    [app.main.data.messages :as msg]
    [app.main.fonts :as fonts]

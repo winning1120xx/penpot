@@ -10,19 +10,16 @@
    [app.common.data.macros :as dm]
    [app.common.pages.changes :as cpc]
    [app.common.schema :as sm]
-   [cljs.spec.alpha :as s]
    [potok.core :as ptk]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Undo / Redo
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; FIXME: add schemas
-
-(def schema:undo-entry :any
-  #_[:map
-   [:undo-changes ::cpc/changes]
-   [:redo-changes ::cpc/changes]])
+(def schema:undo-entry
+  [:map
+   [:undo-changes [:vector ::cpc/change]]
+   [:redo-changes [:vector ::cpc/change]]])
 
 (def undo-entry?
   (sm/pred-fn schema:undo-entry))

@@ -10,7 +10,6 @@
    [app.common.geom.point :as gpt]
    [app.common.geom.shapes :as gsh]
    [app.common.pages.changes-builder :as pcb]
-   [app.common.schema :as sm]
    [app.common.types.page :as ctp]
    [app.main.data.workspace.changes :as dwc]
    [app.main.data.workspace.state-helpers :as wsh]

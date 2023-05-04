@@ -10,7 +10,6 @@
    [app.common.logging :as log]
    [app.common.pages :as cp]
    [app.common.pages.changes :as cpc]
-   [app.common.spec :as us]
    [app.common.types.shape-tree :as ctst]
    [app.common.uuid :as uuid]
    [app.main.data.workspace.changes :as dch]
@@ -21,7 +20,6 @@
    [app.util.router :as rt]
    [app.util.time :as dt]
    [beicon.core :as rx]
-   [cljs.spec.alpha :as s]
    [okulary.core :as l]
    [potok.core :as ptk]))
 

@@ -8,8 +8,8 @@
   (:require
    [app.common.data :as d]
    [app.common.data.macros :as dm]
-   [app.common.schema :as sm]
    [app.common.exceptions :as ex]
+   [app.common.schema :as sm]
    [app.common.spec :as us]
    [app.common.uuid :as uuid]
    [app.config :as cf]
@@ -21,7 +21,6 @@
    [app.util.router :as rt]
    [app.util.storage :refer [storage]]
    [beicon.core :as rx]
-   [cljs.spec.alpha :as s]
    [potok.core :as ptk]))
 
 ;; --- SCHEMAS
@@ -478,7 +477,7 @@
 
 ;; FIXME: check if we can use schema for proper filter
 (defn request-profile-recovery
-  [{:keys [email] :as data}]
+  [data]
   (dm/assert! (sm/valid? schema:request-profile-recovery data))
   (ptk/reify ::request-profile-recovery
     ptk/WatchEvent
@@ -492,10 +491,6 @@
              (rx/catch on-error))))))
 
 ;; --- EVENT: recover-profile (Password)
-
-(s/def ::token string?)
-(s/def ::recover-profile
-  (s/keys :req-un [::password ::token]))
 
 (def schema:recover-profile
   [:map {:closed true}

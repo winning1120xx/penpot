@@ -19,7 +19,6 @@
    [app.util.dom :as dom]
    [app.util.i18n :as i18n :refer [tr]]
    [app.util.router :as rt]
-   [cljs.spec.alpha :as s]
    [rumext.v2 :as mf]))
 
 (def schema:project-menu

@@ -29,9 +29,7 @@
 
 (mf/defc on-main-error
   [{:keys [error] :as props}]
-  (js/console.log "QQQQ")
-
-  #_(mf/with-effect
+  (mf/with-effect
     (st/emit! (rt/assign-exception error)))
   [:span "Internal application error"])
 
