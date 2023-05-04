@@ -9,7 +9,6 @@
     [app.common.data :as d]
     [app.common.schema :as sm]
     [app.common.schema.openapi :as-alias oapi]
-    [app.common.spec :as us]
     [app.common.text :as txt]
     [app.common.types.color.generic :as-alias color-generic]
     [app.common.types.color.gradient :as-alias color-gradient]

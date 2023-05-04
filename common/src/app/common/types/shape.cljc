@@ -14,22 +14,19 @@
    [app.common.geom.shapes :as gsh]
    [app.common.pages.common :refer [default-color]]
    [app.common.schema :as sm]
-   [app.common.spec :as us]
    [app.common.types.color :as ctc]
    [app.common.types.grid :as-alias ctg]
    [app.common.types.shape.blur :as ctsb]
    [app.common.types.shape.export :as ctse]
    [app.common.types.shape.interactions :as ctsi]
-   ;; FIXME: missing layout specs
-   [app.common.types.shape.layout :as ctsl]
-   [app.common.types.shape.path :as ctsp]
+   ;; FIXME: missing spec -> schema
+   #_[app.common.types.shape.layout :as ctsl]
+   #_[app.common.types.shape.path :as ctsp]
    [app.common.types.shape.radius :as ctsr]
    [app.common.types.shape.shadow :as ctss]
    [app.common.types.shape.text :as ctsx]
    [app.common.uuid :as uuid]
-   [clojure.set :as set]
-   [clojure.spec.alpha :as s]
-   [clojure.test.check.generators :as tgen]))
+   [clojure.set :as set]))
 
 (def stroke-caps-line #{:round :square})
 (def stroke-caps-marker #{:line-arrow :triangle-arrow :square-marker :circle-marker :diamond-marker})

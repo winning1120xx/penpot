@@ -15,12 +15,10 @@
    [app.common.data.macros :as dm]
    [app.common.exceptions :as ex]
    [app.common.math :as mth]
-   [app.common.spec :as us]
    [app.common.schema :as sm]
    [app.common.schema.generators :as sg]
    [app.common.schema.openapi :as-alias oapi]
-   [cuerdas.core :as str]
-   [clojure.spec.alpha :as s]))
+   [cuerdas.core :as str]))
 
 ;; --- Point Impl
 
@@ -34,12 +32,6 @@
   "Return true if `v` is Point instance."
   [v]
   (instance? Point v))
-
-(s/def ::x ::us/safe-number)
-(s/def ::y ::us/safe-number)
-
-(s/def ::point-attrs
-  (s/keys :req-un [::x ::y]))
 
 (sm/def! ::point-map
   [:map {:title "PointMap"}
@@ -71,10 +63,6 @@
       ::oapi/format "point"
       ::oapi/decode decode
       ::oapi/encode encode}}))
-
-(s/def ::point
-  (s/with-gen (s/and ::point-attrs point?)
-    #(sg/fmap map->Point (s/gen ::point-attrs))))
 
 (defn point-like?
   [{:keys [x y] :as v}]

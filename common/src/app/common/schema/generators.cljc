@@ -12,9 +12,7 @@
    [app.common.uuid :as uuid]
    [clojure.test.check.generators :as tgen]
    [cuerdas.core :as str]
-   [malli.core :as m]
-   [malli.generator :as mg]
-   [malli.util :as mu]))
+   [malli.generator :as mg]))
 
 (defn sample
   ([g]

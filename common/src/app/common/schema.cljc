@@ -370,7 +370,7 @@
   {:type ::one-of
    :min 1
    :max 1
-   :compile (fn [props children options]
+   :compile (fn [props children _]
               (let [options (into #{} (last children))
                     format  (:format props "keyword")]
                 {:pred #(contains? options %)
@@ -428,7 +428,7 @@
   {:type ::contains-any
    :min 1
    :max 1
-   :compile (fn [props children options]
+   :compile (fn [props children _]
               (let [choices (last children)
                     pred    (if (:strict props)
                               #(some (fn [prop]

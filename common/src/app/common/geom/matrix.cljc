@@ -11,12 +11,10 @@
    [app.common.data :as d]
    [app.common.data.macros :as dm]
    [app.common.geom.point :as gpt]
-   [app.common.schema.generators :as sg]
-   [app.common.schema.openapi :as-alias oapi]
-   [app.common.schema :as sm]
    [app.common.math :as mth]
-   [app.common.spec :as us]
-   [clojure.spec.alpha :as s]))
+   [app.common.schema :as sm]
+   [app.common.schema.generators :as sg]
+   [app.common.schema.openapi :as-alias oapi]))
 
 (def precision 6)
 
@@ -48,21 +46,6 @@
    (Matrix. 1 0 0 1 0 0))
   ([a b c d e f]
    (Matrix. a b c d e f)))
-
-(s/def ::a ::us/safe-float)
-(s/def ::b ::us/safe-float)
-(s/def ::c ::us/safe-float)
-(s/def ::d ::us/safe-float)
-(s/def ::e ::us/safe-float)
-(s/def ::f ::us/safe-float)
-
-(s/def ::matrix-attrs
-  (s/keys :req-un [::a ::b ::c ::d ::e ::f]))
-
-(s/def ::matrix
-  (s/with-gen
-    (s/and ::matrix-attrs matrix?)
-    #(sg/fmap map->Matrix (s/gen ::matrix-attrs))))
 
 (def number-regex #"[+-]?\d*(\.\d+)?(e[+-]?\d+)?")
 

@@ -69,7 +69,7 @@
   [:map {:title "FilePage"}
    [:id ::sm/uuid]
    [:name :string]
-   #_[:objects
+   [:objects
     [:map-of {:gen/max 5} ::sm/uuid ::cts/shape]]
    [:options
     [:map {:title "PageOptions"}

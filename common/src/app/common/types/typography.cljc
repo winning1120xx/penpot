@@ -6,8 +6,8 @@
 
 (ns app.common.types.typography
   (:require
-    [app.common.text :as txt]
-    [app.common.schema :as sm]))
+    [app.common.schema :as sm]
+    [app.common.text :as txt]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; SCHEMA

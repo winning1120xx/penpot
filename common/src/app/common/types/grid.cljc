@@ -7,7 +7,6 @@
 (ns app.common.types.grid
   (:require
    [app.common.schema :as sm]
-   [app.common.spec :as us]
    [app.common.types.color :as-alias ctc]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

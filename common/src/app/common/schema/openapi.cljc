@@ -8,9 +8,7 @@
   (:require
    [clojure.set :as set]
    [cuerdas.core :as str]
-   [malli.core :as m]
-   [malli.transform :as mt]
-   [malli.util :as mu]))
+   [malli.core :as m]))
 
 (def ^:dynamic *definitions* nil)
 

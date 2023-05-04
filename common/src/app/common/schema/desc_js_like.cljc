@@ -7,7 +7,6 @@
 (ns app.common.schema.desc-js-like
   (:require
    [app.common.data :as d]
-   [app.common.exceptions :as ex]
    [cuerdas.core :as str]
    [malli.core :as m]
    [malli.util :as mu]))
@@ -93,7 +92,7 @@
 (defmethod visit :select-keys [_ schema _ options] (describe* (m/deref schema) options))
 (defmethod visit :and [_ s children _] (str (str/join ", and " children) (-titled s)))
 (defmethod visit :enum [_ s children _options] (str "enum" (-titled s) " of " (str/join ", " children)))
-(defmethod visit :maybe [_ s children _] (str (first children) "?"))
+(defmethod visit :maybe [_ _ children _] (str (first children) "?"))
 (defmethod visit :tuple [_ s children _] (str "vector " (-titled s) "with exactly " (count children) " items of type: " (str/join ", " children)))
 (defmethod visit :re [_ s _ options] (str "regex pattern " (-titled s) "matching " (pr-str (first (m/children s options)))))
 (defmethod visit :any [_ s _ _] (str "anything" (-titled s)))
@@ -109,7 +108,7 @@
 (defmethod visit :boolean [_ _ _ _] "boolean")
 (defmethod visit :keyword [_ _ _ _] "keyword")
 
-(defmethod visit :vector [_ schema children _]
+(defmethod visit :vector [_ _ children _]
   (str "[" (last children) "]"))
 
 (defn -tagged [children] (map (fn [[tag _ c]] (str c " (tag: " tag ")")) children))
@@ -137,7 +136,7 @@
 (defmethod visit :map-of [_ _ children _]
   (str "map[" (first children) "," (second children) "]"))
 
-(defmethod visit :union [_ schema children options]
+(defmethod visit :union [_ _ children _]
   (str/join " | " children))
 
 (defn pad
@@ -148,14 +147,14 @@
          (str/join "\n"))))
 
 
-(defmethod visit ::default [name schema children options]
+(defmethod visit ::default [_ schema _ _]
   (let [props (m/type-properties schema)]
     (or (:title props)
         "*")))
 
 
 (defmethod visit :map
-  [_ schema children {:keys [::level ::limit ::max-level] :as options}]
+  [_ schema children {:keys [::level ::max-level] :as options}]
   (let [props   (m/properties schema)
         closed? (:closed props)
         title   (some->> (:title props) str/camel str/capital)]
@@ -183,7 +182,7 @@
         (str header "{\n" entries "\n" (pad "}" level))))))
 
 (defmethod visit :multi
-  [_ s children {:keys [::level ::limit ::max-level] :as options}]
+  [_ s children {:keys [::level ::max-level] :as options}]
   (let [props (m/properties s)
         title (some-> (:title props) str/camel str/capital)]
     (if (>= level max-level)
@@ -194,7 +193,7 @@
             prefix   (apply str (take (inc level) (repeat "  ")))
 
             entries  (->> children
-                          (map (fn [[title _ shape]]
+                          (map (fn [[_ _ shape]]
                                  (str prefix shape)))
                           (str/join ",\n"))
 
@@ -206,7 +205,7 @@
 
 
 (defmethod visit :merge
-  [_ schema children {:keys [::level ::limit ::max-level] :as options}]
+  [_ schema children _]
   (let [entries (str/join " , " children)
         props   (m/properties schema)
         title   (or (some-> (:title props) str/camel str/capital)
@@ -214,7 +213,7 @@
     (str "merge object " title " { " entries " }")))
 
 (defmethod visit :app.common.schema/one-of
-  [_ schema children options]
+  [_ _  children _]
   (let [elems (last children)]
     (str "OneOf[" (->> elems
                        (map d/name)
@@ -224,7 +223,7 @@
   (visit ::m/schema schema children options))
 
 (defmethod visit ::m/schema
-  [_ schema children {:keys [::level ::limit ::max-level] :as options}]
+  [_ schema _ {:keys [::level ::limit ::max-level] :as options}]
   (let [schema' (m/deref schema)
         props   (merge
                  (m/properties schema)
