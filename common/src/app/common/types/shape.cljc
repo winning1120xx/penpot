@@ -6,16 +6,19 @@
 
 (ns app.common.types.shape
   (:require
+   #?(:clj [app.common.fressian :as fres])
    [app.common.colors :as clr]
    [app.common.data :as d]
+   [app.common.data.macros :as dm]
    [app.common.exceptions :as ex]
+   [app.common.geom.proportions :as gpr]
    [app.common.geom.matrix :as gmt]
    [app.common.geom.point :as gpt]
    [app.common.geom.shapes :as gsh]
-   [app.common.pages.common :refer [default-color]]
    [app.common.schema :as sm]
    [app.common.types.color :as ctc]
    [app.common.types.grid :as ctg]
+   [app.common.types.shape.attrs :refer [default-color]]
    [app.common.types.shape.blur :as ctsb]
    [app.common.types.shape.export :as ctse]
    [app.common.types.shape.interactions :as ctsi]
@@ -24,7 +27,27 @@
    [app.common.types.shape.shadow :as ctss]
    [app.common.types.shape.text :as ctsx]
    [app.common.uuid :as uuid]
+   [app.common.transit :as t]
    [clojure.set :as set]))
+
+(defrecord Shape [id name x y width height selrect points transform transform-inverse parent-id frame-id])
+
+(defn shape?
+  [o]
+  (instance? Shape o))
+
+(t/add-handlers!
+ {:id "shape"
+  :class Shape
+  :wfn #(into {} %)
+  :rfn map->Shape})
+
+#?(:clj
+   (fres/add-handlers!
+    {:name "penpot/shape"
+     :class Shape
+     :wfn fres/write-map-like
+     :rfn (comp map->Shape fres/read-map-like)}))
 
 (def stroke-caps-line #{:round :square})
 (def stroke-caps-marker #{:line-arrow :triangle-arrow :square-marker :circle-marker :diamond-marker})
@@ -126,10 +149,10 @@
    [:r2 {:optional true} ::sm/safe-number]
    [:r3 {:optional true} ::sm/safe-number]
    [:r4 {:optional true} ::sm/safe-number]
-   [:x {:optional true} ::sm/safe-number]
-   [:y {:optional true} ::sm/safe-number]
-   [:width {:optional true} ::sm/safe-number]
-   [:height {:optional true} ::sm/safe-number]
+   [:x {:optional true} [:maybe ::sm/safe-number]]
+   [:y {:optional true} [:maybe ::sm/safe-number]]
+   [:width {:optional true} [:maybe ::sm/safe-number]]
+   [:height {:optional true} [:maybe ::sm/safe-number]]
    [:opacity {:optional true} ::sm/safe-number]
    [:grids {:optional true}
     [:vector {:gen/max 2} ::ctg/grid]]
@@ -137,8 +160,8 @@
     [:vector {:gen/max 2} ::ctse/export]]
    [:strokes {:optional true}
     [:vector {:gen/max 2} ::stroke]]
-   [:transform {:optional true} ::gmt/matrix]
-   [:transform-inverse {:optional true} ::gmt/matrix]
+   [:transform {:optional true} [:maybe ::gmt/matrix]]
+   [:transform-inverse {:optional true} [:maybe ::gmt/matrix]]
    [:blend-mode {:optional true} [::sm/one-of blend-mode]]
    [:interactions {:optional true}
     [:vector {:gen/max 2} ::ctsi/interaction]]
@@ -149,7 +172,7 @@
     [::sm/one-of #{:auto-width :auto-height :fixed}]]
    ])
 
-(def shape-attrs?
+(def valid-shape-attrs?
   (sm/pred-fn ::shape-attrs))
 
 (sm/def! ::group-attrs
@@ -275,9 +298,6 @@
      ::text-attrs]]
    ])
 
-(def shape?
-  (sm/pred-fn ::shape))
-
 ;; --- Initialization
 
 (def default-shape-attrs
@@ -326,107 +346,93 @@
     :fills [{:fill-color clr/white
              :fill-opacity 1}]
     :strokes []
-    :rx 0
-    :ry 0}
+    :shapes []}
+
+   {:type :bool
+    :name "Bool"
+    :shapes []}
+
+   {:type :group
+    :name "Group"
+    :shapes []}
 
    {:type :text
     :name "Text"
     :content nil}
 
-   {:type :svg-raw}])
+   {:type :svg-raw
+    :fills []
+    :strokes []}])
 
 (def empty-selrect
-  {:x  0    :y  0
-   :x1 0    :y1 0
-   :x2 0.01    :y2 0.01
-   :width 0.01 :height 0.01})
+  (gsh/map->Rect
+   {:x  0    :y  0
+    :x1 0    :y1 0
+    :x2 0.01 :y2 0.01
+    :width 0.01
+    :height 0.01}))
 
-(defn make-minimal-shape
+(defn- make-minimal-shape
   [type]
-  (let [type (cond (= type :curve) :path
-                   :else type)
-        shape (d/seek #(= type (:type %)) minimal-shapes)]
-    (when-not shape
-      (ex/raise :type :assertion
-                :code :shape-type-not-implemented
-                :context {:type type}))
+  (let [type  (if (= type :curve) :path type)
+        attrs (d/seek #(= type (:type %)) minimal-shapes)]
 
-    (cond-> shape
+    (dm/verify!
+     "expected a valid shape type"
+     (map? attrs))
+
+    (cond-> attrs
+      (not= :path type)
+      (-> (assoc :x 0)
+          (assoc :y 0)
+          (assoc :width 0.01)
+          (assoc :height 0.01))
+
       :always
       (assoc :id (uuid/next))
 
-      (not= :path (:type shape))
-      (assoc :x 0
-             :y 0
-             :width 0.01
-             :height 0.01
-             :selrect {:x 0
-                       :y 0
-                       :x1 0
-                       :y1 0
-                       :x2 0.01
-                       :y2 0.01
-                       :width 0.01
-                       :height 0.01}))))
+      :always
+      (map->Shape))))
 
-(defn make-minimal-group
-  [frame-id rect group-name]
-  {:id (uuid/next)
-   :type :group
-   :name group-name
-   :shapes []
-   :frame-id frame-id
-   :x (:x rect)
-   :y (:y rect)
-   :width (:width rect)
-   :height (:height rect)})
-
-(defn setup-rect-selrect
+(defn setup-rect
   "Initializes the selrect and points for a shape."
-  [shape]
-  (let [selrect (gsh/rect->selrect shape)
-        points  (gsh/rect->points shape)
-        points  (cond-> points
-                  (:transform shape)
-                  (gsh/transform-points (gsh/center-points points) (:transform shape)))]
+  [{:keys [selrect points] :as shape}]
+  (let [selrect (or selrect (gsh/rect->selrect shape))
+        points  (or points  (gsh/rect->points selrect))]
     (-> shape
-        (assoc :selrect selrect
-               :points points))))
+        (assoc :selrect selrect)
+        (assoc :points points))))
 
-(defn- setup-rect
-  "A specialized function for setup rect-like shapes."
-  [shape {:keys [x y width height]}]
-  (-> shape
-      (assoc :x x :y y :width width :height height)
-      (setup-rect-selrect)))
+(defn setup-path
+  [{:keys [content selrect points] :as shape}]
+  (let [selrect (or selrect (gsh/content->selrect content))
+        points  (or points  (gsh/rect->points selrect))]
+    (-> shape
+        (assoc :selrect selrect)
+        (assoc :points points))))
 
 (defn- setup-image
-  [shape props]
-  (let [metadata (or (:metadata shape) (:metadata props))]
-    (-> (setup-rect shape props)
-        (assoc
-          :metadata metadata
-          :proportion (/ (:width metadata)
-                         (:height metadata))
-          :proportion-lock true))))
+  [{:keys [metadata] :as shape}]
+  (-> shape
+      (assoc :metadata metadata)
+      (assoc :proportion (/ (:width metadata)
+                            (:height metadata)))
+      (assoc :proportion-lock true)))
 
 (defn setup-shape
   "A function that initializes the geometric data of
   the shape. The props must have :x :y :width :height."
-  ([props]
-   (setup-shape {:type :rect} props))
-
-  ([shape props]
-   (case (:type shape)
-     :image (setup-image shape props)
-     (setup-rect shape props))))
-
-(defn make-shape
-  "Make a non group shape, ready to use."
-  [type geom-props attrs]
-  (-> (if-not (= type :group)
-        (make-minimal-shape type)
-        (make-minimal-group uuid/zero geom-props (:name attrs)))
-      (setup-shape geom-props)
-      (merge attrs)))
-
+  [{:keys [type] :as props}]
+  (let [shape (make-minimal-shape type)
+        shape (merge shape (d/without-nils props))
+        shape (map->Shape shape)
+        shape (case (:type shape)
+                :path  (setup-path shape)
+                :image (-> shape setup-rect setup-image)
+                (setup-rect shape))]
+    (-> shape
+        (cond-> (nil? (:transform shape))
+          (assoc :transform (gmt/matrix)))
+        (cond-> (nil? (:transform-inverse shape))
+          (assoc :transform-inverse (gmt/matrix)))
+        (gpr/setup-proportions))))

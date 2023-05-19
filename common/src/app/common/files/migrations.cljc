@@ -4,31 +4,32 @@
 ;;
 ;; Copyright (c) KALEIDOS INC
 
-(ns app.common.pages.migrations
+(ns app.common.files.migrations
   (:require
    [app.common.data :as d]
    [app.common.data.macros :as dm]
+   [app.common.files.defaults :refer [version]]
    [app.common.geom.matrix :as gmt]
    [app.common.geom.shapes :as gsh]
    [app.common.geom.shapes.path :as gsp]
    [app.common.geom.shapes.text :as gsht]
    [app.common.logging :as log]
    [app.common.math :as mth]
-   [app.common.pages :as cp]
+   [app.common.pages.changes :as cpc]
    [app.common.pages.helpers :as cph]
    [app.common.types.shape :as cts]
    [app.common.uuid :as uuid]
    [cuerdas.core :as str]))
 
-;; TODO: revisit this and rename to file-migrations
+#?(:cljs (log/set-level! :info))
 
 (defmulti migrate :version)
 
-(log/set-level! :info)
-
 (defn migrate-data
-  ([data] (migrate-data data cp/file-version))
+  ([data] (migrate-data data version))
   ([data to-version]
+   (prn "migrate-data" (:version data) to-version)
+
    (if (= (:version data) to-version)
      data
      (let [migrate-fn #(do
@@ -94,7 +95,7 @@
 
           (fix-empty-points [shape]
             (let [shape (cond-> shape
-                          (empty? (:selrect shape)) (cts/setup-rect-selrect))]
+                          (empty? (:selrect shape)) (cts/setup-rect))]
               (cond-> shape
                 (empty? (:points shape))
                 (assoc :points (gsh/rect->points (:selrect shape))))))
@@ -242,7 +243,7 @@
     (loop [data data]
       (let [changes (mapcat calculate-changes (:pages-index data))]
         (if (seq changes)
-          (recur (cp/process-changes data changes))
+          (recur (cpc/process-changes data changes))
           data)))))
 
 (defmethod migrate 10
@@ -462,5 +463,31 @@
         (update :pages-index update-vals update-container)
         (update :components update-vals update-container))))
 
-;; TODO: pending to do a migration for delete already not used fill
-;; and stroke props. This should be done for >1.14.x version.
+(defmethod migrate 21
+  [data]
+  (letfn [(update-object [object]
+            (-> object
+                (d/update-when :selrect gsh/map->Rect)
+                (cts/map->Shape)))
+          (update-container [container]
+            (d/update-when container :objects update-vals update-object))]
+    (-> data
+        (update :pages-index update-vals update-container)
+        (update :components update-vals update-container))))
+
+(defmethod migrate 22
+  [data]
+  (letfn [(update-object [object]
+            (cond-> object
+              (nil? (:transform object))
+              (assoc :transform (gmt/matrix))
+
+              (nil? (:transform-inverse object))
+              (assoc :transform-inverse (gmt/matrix))))
+
+          (update-container [container]
+            (d/update-when container :objects update-vals update-object))]
+
+    (-> data
+        (update :pages-index update-vals update-container)
+        (update :components update-vals update-container))))
