@@ -48,13 +48,15 @@
                         (assoc :page-id  (:current-page-id file)
                                :frame-id (:current-frame-id file)))]
 
-     (when fail-on-spec?
-       (dm/verify! (ch/valid-change? change)))
-
      (let [valid? (ch/valid-change? change)]
        (when-not valid?
-         (pp/pprint change {:level 100})
-         (sm/pretty-explain ::ch/change change))
+         (let [explain (sm/explain ::ch/change change)]
+           (pp/pprint (sm/humanize-data explain))
+           (if fail-on-spec?
+             (ex/raise :type :assertion
+                       :code :data-validation
+                       :hint "invalid change"
+                       ::sm/explain explain))))
 
        (cond-> file
          valid?

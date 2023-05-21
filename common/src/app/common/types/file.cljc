@@ -72,7 +72,6 @@
    :pages []
    :pages-index {}})
 
-;; FIXME: strange impl
 (defn make-file-data
   ([file-id]
    (make-file-data file-id (uuid/next)))

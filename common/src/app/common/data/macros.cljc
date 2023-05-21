@@ -154,7 +154,7 @@
 
 (defmacro verify!
   ([expr]
-   `(assert! nil ~expr))
+   `(verify! nil ~expr))
   ([hint expr]
    (let [hint (cond
                 (vector? hint)
