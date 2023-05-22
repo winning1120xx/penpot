@@ -9,7 +9,7 @@
    [app.common.data :as d]
    [app.common.geom.matrix :as gmt]
    [app.common.geom.point :as gpt]
-   [app.common.geom.shapes.rect :as gpr]
+   [app.common.geom.rect :as grc]
    [app.common.math :as mth]))
 
 (defn center-rect
@@ -68,10 +68,11 @@
        (mapv tr-point points))
      points)))
 
+;; FIXME: performance rect
 (defn transform-selrect
   [{:keys [x1 y1 x2 y2] :as sr} matrix]
   (let [[c1 c2] (transform-points [(gpt/point x1 y1) (gpt/point x2 y2)] matrix)]
-    (gpr/corners->selrect c1 c2)))
+    (grc/corners->rect c1 c2)))
 
 (defn invalid-geometry?
   [{:keys [points selrect]}]

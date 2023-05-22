@@ -7,7 +7,9 @@
 (ns app.main.ui.workspace.viewport.snap-distances
   (:require
    [app.common.data :as d]
+   [app.common.data.macros :as dm]
    [app.common.geom.shapes :as gsh]
+   [app.common.geom.rect :as grc]
    [app.common.math :as mth]
    [app.common.types.shape.layout :as ctl]
    [app.main.refs :as refs]
@@ -23,7 +25,7 @@
 (def ^:private segment-gap-side 5)
 
 (defn selected->cross-selrec [frame selrect coord]
-  (let [areas (gsh/selrect->areas (:selrect frame) selrect)]
+  (let [areas (gsh/get-areas (:selrect frame) selrect)]
     (if (= :x coord)
       [(gsh/pad-selrec (:left areas))
        (gsh/pad-selrec (:right areas))]
@@ -218,9 +220,9 @@
           (let [lt-side (if (= coord :x) :left :top)
                 gt-side (if (= coord :x) :right :bottom)
 
-                vbox (gsh/rect->selrect @refs/vbox)
-                areas (gsh/selrect->areas
-                       (or (gsh/clip-selrect (:selrect frame) vbox) vbox)
+                vbox  (deref refs/vbox)
+                areas (gsh/get-areas
+                       (or (grc/clip-rect (dm/get-prop frame :selrect) vbox) vbox)
                        selrect)
 
                 query-side (fn [side]

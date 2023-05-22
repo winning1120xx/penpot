@@ -8,6 +8,7 @@
   (:require
    [app.common.data.macros :as dm]
    [app.common.geom.point :as gpt]
+   [app.common.geom.rect :as grc]
    [app.common.geom.shapes :as gsh]
    [app.common.geom.shapes.flex-layout :as gsl]
    [app.common.math :as mth]
@@ -42,8 +43,8 @@
 
 (defn resize-shape [{:keys [x y width height] :as shape} initial point lock?]
   (if (and (some? x) (some? y) (some? width) (some? height))
-    (let [draw-rect  (gsh/make-rect initial (cond-> point lock? (adjust-ratio initial)))
-          shape-rect (gsh/make-rect x y width height)
+    (let [draw-rect  (grc/make-rect initial (cond-> point lock? (adjust-ratio initial)))
+          shape-rect (grc/make-rect x y width height)
 
           scalev     (gpt/point (/ (:width draw-rect)
                                    (:width shape-rect))

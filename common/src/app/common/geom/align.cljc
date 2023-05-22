@@ -6,6 +6,7 @@
 
 (ns app.common.geom.align
   (:require
+   [app.common.data.macros :as dm]
    [app.common.geom.shapes :as gsh]
    [app.common.pages.helpers :refer [get-children]]))
 
@@ -115,28 +116,32 @@
 (defn adjust-to-viewport
   ([viewport srect] (adjust-to-viewport viewport srect nil))
   ([viewport srect {:keys [padding] :or {padding 0}}]
-   (let [gprop (/ (:width viewport) (:height viewport))
-         srect (-> srect
-                   (update :x #(- % padding))
-                   (update :y #(- % padding))
-                   (update :width #(+ % padding padding))
-                   (update :height #(+ % padding padding)))
-         width (:width srect)
+   (let [gprop  (/ (:width viewport)
+                   (:height viewport))
+         srect  (-> srect
+                    (update :x #(- % padding))
+                    (update :y #(- % padding))
+                    (update :width #(+ % padding padding))
+                    (update :height #(+ % padding padding)))
+         width  (:width srect)
          height (:height srect)
-         lprop (/ width height)]
+         lprop  (/ width height)]
      (cond
-      (> gprop lprop)
-      (let [width'  (* (/ width lprop) gprop)
-            padding (/ (- width' width) 2)]
-        (-> srect
-            (update :x #(- % padding))
-            (assoc :width width')))
+       (> gprop lprop)
+       (let [width'  (* (/ width lprop) gprop)
+             padding (/ (- width' width) 2)]
+         (-> srect
+             (update :x #(- % padding))
+             (assoc :width width')
+             (gsh/update-rect :position)))
 
-      (< gprop lprop)
-      (let [height' (/ (* height lprop) gprop)
-            padding (/ (- height' height) 2)]
-        (-> srect
-            (update :y #(- % padding))
-            (assoc :height height')))
+       (< gprop lprop)
+       (let [height' (/ (* height lprop) gprop)
+             padding (/ (- height' height) 2)]
+         (-> srect
+             (update :y #(- % padding))
+             (assoc :height height')
+             (gsh/update-rect :position)))
 
-      :else srect))))
+       :else
+       (gsh/update-rect srect :position)))))

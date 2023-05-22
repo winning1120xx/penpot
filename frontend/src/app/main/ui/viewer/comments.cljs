@@ -103,7 +103,7 @@
         threads-map  (mf/deref refs/comment-threads)
 
         frame-corner (mf/with-memo [frame]
-                       (-> frame :points gsh/points->selrect gpt/point))
+                       (-> frame :points gsh/points->rect gpt/point))
 
         modifier1    (mf/with-memo [frame-corner]
                        (-> (gmt/matrix)

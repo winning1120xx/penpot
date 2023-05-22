@@ -8,9 +8,9 @@
   (:require
    [app.common.data :as d]
    [app.common.geom.point :as gpt]
+   [app.common.geom.rect :as grc]
    [app.common.geom.shapes.common :as gco]
    [app.common.geom.shapes.intersect :as gsi]
-   [app.common.geom.shapes.rect :as gre]
    [app.common.math :as mth]))
 
 (defn origin
@@ -146,7 +146,7 @@
   (let [width (width-points points)
         height (height-points points)
         center (gco/center-points points)]
-    (gre/center->selrect center width height)))
+    (grc/center->rect center width height)))
 
 (defn move
   [bounds vector]

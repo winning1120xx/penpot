@@ -7,7 +7,9 @@
 (ns app.main.snap
   (:require
    [app.common.data :as d]
+   [app.common.data.macros :as dm]
    [app.common.geom.point :as gpt]
+   [app.common.geom.rect :as grc]
    [app.common.geom.shapes :as gsh]
    [app.common.math :as mth]
    [app.common.pages :as cp]
@@ -231,11 +233,11 @@
     (->> (rx/of (vector frame selrect))
          (rx/merge-map
           (fn [[frame selrect]]
-            (let [vbox (gsh/rect->selrect @refs/vbox)
+            (let [vbox     (deref refs/vbox)
                   frame-id (->> shapes first :frame-id)
                   selected (into #{} (map :id shapes))
-                  areas (->> (gsh/selrect->areas
-                              (or (gsh/clip-selrect (:selrect frame) vbox)
+                  areas (->> (gsh/get-areas
+                              (or (grc/clip-rect (dm/get-prop frame :selrect) vbox)
                                   vbox)
                               selrect)
                              (d/mapm #(select-shapes-area page-id frame-id selected objects %2)))

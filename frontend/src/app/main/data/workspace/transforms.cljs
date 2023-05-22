@@ -697,7 +697,8 @@
             objects (wsh/lookup-page-objects state page-id)
             shape   (get objects id)
 
-            bbox (-> shape :points gsh/points->selrect)
+            ;; FIXME: performance rect
+            bbox (-> shape :points gsh/points->rect)
 
             cpos (gpt/point (:x bbox) (:y bbox))
             pos  (gpt/point (or (:x position) (:x bbox))

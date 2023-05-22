@@ -364,14 +364,6 @@
     :fills []
     :strokes []}])
 
-(def empty-selrect
-  (gsh/map->Rect
-   {:x  0    :y  0
-    :x1 0    :y1 0
-    :x2 0.01 :y2 0.01
-    :width 0.01
-    :height 0.01}))
-
 (defn- make-minimal-shape
   [type]
   (let [type  (if (= type :curve) :path type)
@@ -397,7 +389,7 @@
 (defn setup-rect
   "Initializes the selrect and points for a shape."
   [{:keys [selrect points] :as shape}]
-  (let [selrect (or selrect (gsh/rect->selrect shape))
+  (let [selrect (or selrect (gsh/shape->rect shape))
         points  (or points  (gsh/rect->points selrect))]
     (-> shape
         (assoc :selrect selrect)

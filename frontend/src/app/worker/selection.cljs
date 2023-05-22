@@ -24,6 +24,7 @@
 (defn make-index-shape
   [objects parents-index clip-parents-index]
   (fn [index shape]
+    ;; FIXME: performance rect
     (let [{:keys [x y width height]}
           (cond
             (and (= :text (:type shape))
@@ -32,7 +33,7 @@
             (gte/position-data-bounding-box shape)
 
             :else
-            (gsh/points->selrect (:points shape)))
+            (gsh/points->rect (:points shape)))
           shape-bound #js {:x x :y y :width width :height height}
 
           parents      (get parents-index (:id shape))

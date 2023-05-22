@@ -10,6 +10,7 @@
    [app.common.data.macros :as dm]
    [app.common.files.defaults :refer [version]]
    [app.common.geom.matrix :as gmt]
+   [app.common.geom.rect :as grc]
    [app.common.geom.shapes :as gsh]
    [app.common.geom.shapes.path :as gsp]
    [app.common.geom.shapes.text :as gsht]
@@ -75,7 +76,7 @@
             (if-not (contains? shape :content)
               (let [content (gsp/segments->content (:segments shape) (:close? shape))
                     selrect (gsh/content->selrect content)
-                    points  (gsh/rect->points selrect)]
+                    points  (grc/rect->points selrect)]
                 (-> shape
                     (dissoc :segments)
                     (dissoc :close?)
@@ -88,17 +89,17 @@
           (fix-frames-selrects [frame]
             (if (= (:id frame) uuid/zero)
               frame
-              (let [frame-rect (select-keys frame [:x :y :width :height])]
+              (let [selrect (gsh/shape->rect frame)]
                 (-> frame
-                    (assoc :selrect (gsh/rect->selrect frame-rect))
-                    (assoc :points (gsh/rect->points frame-rect))))))
+                    (assoc :selrect selrect)
+                    (assoc :points (gsh/rect->points selrect))))))
 
           (fix-empty-points [shape]
             (let [shape (cond-> shape
                           (empty? (:selrect shape)) (cts/setup-rect))]
               (cond-> shape
                 (empty? (:points shape))
-                (assoc :points (gsh/rect->points (:selrect shape))))))
+                (assoc :points (grc/rect->points (:selrect shape))))))
 
           (update-object [object]
             (cond-> object
@@ -142,10 +143,10 @@
   ;; Fixes issues with selrect/points for shapes with width/height = 0 (line-like paths)"
   (letfn [(fix-line-paths [shape]
             (if (= (:type shape) :path)
-              (let [{:keys [width height]} (gsh/points->rect (:points shape))]
+              (let [{:keys [width height]} (grc/points->rect (:points shape))]
                 (if (or (mth/almost-zero? width) (mth/almost-zero? height))
                   (let [selrect (gsh/content->selrect (:content shape))
-                        points (gsh/rect->points selrect)
+                        points (grc/rect->points selrect)
                         transform (gmt/matrix)
                         transform-inv (gmt/matrix)]
                     (assoc shape
@@ -467,7 +468,8 @@
   [data]
   (letfn [(update-object [object]
             (-> object
-                (d/update-when :selrect gsh/map->Rect)
+                (d/update-when :selrect grc/make-rect)
+                ;; FIXME: better name & relocate geom
                 (cts/map->Shape)))
           (update-container [container]
             (d/update-when container :objects update-vals update-object))]

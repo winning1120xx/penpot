@@ -7,7 +7,7 @@
 (ns app.common.geom.shapes.bounds
   (:require
    [app.common.data :as d]
-   [app.common.geom.shapes.rect :as gsr]
+   [app.common.geom.rect :as grc]
    [app.common.math :as mth]
    [app.common.pages.helpers :as cph]))
 
@@ -18,6 +18,7 @@
     (mth/sqrt (* 2 stroke-width stroke-width))
     (- (mth/sqrt (* 2 stroke-width stroke-width)) stroke-width)))
 
+;; FIXME: performance
 (defn blur-filters [type value]
   (->> [value]
        (remove :hidden)
@@ -26,6 +27,7 @@
                        :type (:type %)
                        :params %))))
 
+;; FIXME: performance
 (defn shadow-filters [type filters]
   (->> filters
        (remove :hidden)
@@ -48,21 +50,24 @@
    (->> shape :shadow (shadow-filters :inner-shadow))
    (->> shape :blur   (blur-filters   :layer-blur))))
 
+;; FIXME: performance rect
 (defn calculate-filter-bounds [{:keys [x y width height]} filter-entry]
   (let [{:keys [offset-x offset-y blur spread] :or {offset-x 0 offset-y 0 blur 0 spread 0}} (:params filter-entry)
         filter-x (min x (+ x offset-x (- spread) (- blur) -5))
         filter-y (min y (+ y offset-y (- spread) (- blur) -5))
         filter-width (+ width (mth/abs offset-x) (* spread 2) (* blur 2) 10)
         filter-height (+ height (mth/abs offset-y) (* spread 2) (* blur 2) 10)]
-    (gsr/make-selrect filter-x filter-y filter-width filter-height)))
+    (grc/make-rect filter-x filter-y filter-width filter-height)))
 
 (defn get-rect-filter-bounds
   [selrect filters blur-value]
+  (prn "get-rect-filter-bounds" selrect)
+
   (let [filter-bounds (->> filters
                            (filter #(= :drop-shadow (:type %)))
                            (map (partial calculate-filter-bounds selrect))
                            (concat [selrect])
-                           (gsr/join-selrects))
+                           (grc/join-rects))
         delta-blur (* blur-value 2)
 
         result
@@ -86,7 +91,7 @@
 
        (let [filters (shape->filters shape)
              blur-value (or (-> shape :blur :value) 0)]
-         (get-rect-filter-bounds (-> shape :points gsr/points->selrect) filters blur-value))))))
+         (get-rect-filter-bounds (-> shape :points grc/points->rect) filters blur-value))))))
 
 (defn calculate-padding
   ([shape]
@@ -127,7 +132,6 @@
 
 (defn get-object-bounds
   [objects shape]
-
   (let [calculate-base-bounds
         (fn [shape]
           (-> (get-shape-filter-bounds shape)
@@ -163,7 +167,7 @@
            [(calculate-base-bounds shape)]))
 
         children-bounds
-        (cond->> (gsr/join-selrects bounds)
+        (cond->> (grc/join-rects bounds)
           (not (cph/frame-shape? shape)) (or (:children-bounds shape)))
 
         filters (shape->filters shape)

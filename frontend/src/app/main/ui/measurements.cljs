@@ -249,7 +249,7 @@
   [{:keys [bounds frame selected-shapes hover-shape zoom]}]
   (let [selected-ids          (into #{} (map :id) selected-shapes)
         selected-selrect      (gsh/selection-rect selected-shapes)
-        hover-selrect         (-> hover-shape :points gsh/points->selrect)
+        hover-selrect         (-> hover-shape :points gsh/points->rect)
         bounds-selrect        (bound->selrect bounds)
         hover-selected-shape? (not (contains? selected-ids (:id hover-shape)))]
 
@@ -262,7 +262,7 @@
 
        (if (or (not hover-shape) (not hover-selected-shape?))
          (when (and frame (not= uuid/zero (:id frame)))
-           (let [frame-bb (-> (:points frame) (gsh/points->selrect))]
+           (let [frame-bb (-> (:points frame) (gsh/points->rect))]
              [:g.hover-shapes
               [:& selection-rect {:type :hover :selrect frame-bb :zoom zoom}]
               [:& distance-display {:from frame-bb

@@ -18,6 +18,7 @@
     (gpt/point x (+ y height))
     (gsh/center-selrect selrect)})
 
+;; FIXME: performance rect ???
 (defn frame-snap-points [{:keys [x y width height blocked hidden] :as selrect}]
   (when (and (not blocked) (not hidden))
     (into (selrect-snap-points selrect)
@@ -30,7 +31,7 @@
   [{:keys [hidden blocked] :as shape}]
   (when (and (not blocked) (not hidden))
     (case (:type shape)
-      :frame (-> shape :points gsh/points->selrect frame-snap-points)
+      :frame (-> shape :points gsh/points->rect frame-snap-points)
       (into #{(gsh/center-shape shape)} (:points shape)))))
 
 (defn guide-snap-points

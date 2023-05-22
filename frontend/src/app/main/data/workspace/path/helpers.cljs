@@ -63,7 +63,7 @@
         ;; through points
         selrect (-> points
                     (gsh/transform-points points-center transform-inverse)
-                    (gsh/points->selrect))]
+                    (gsh/points->rect))]
     [points selrect]))
 
 (defn update-selrect

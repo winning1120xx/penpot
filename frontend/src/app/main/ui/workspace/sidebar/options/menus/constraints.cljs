@@ -32,7 +32,8 @@
         shapes (as-> old-shapes $
                  (map gsh/translate-to-frame $ frames))
 
-        values (let [{:keys [x y]} (-> shapes first :points gsh/points->selrect)]
+        ;; FIXME: performance rect
+        values (let [{:keys [x y]} (-> shapes first :points gsh/points->rect)]
                  (cond-> values
                    (not= (:x values) :multiple) (assoc :x x)
                    (not= (:y values) :multiple) (assoc :y y)))

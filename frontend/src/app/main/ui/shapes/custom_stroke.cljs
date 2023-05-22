@@ -51,8 +51,9 @@
         selrect
         (if (cph/text-shape? shape)
           (gsh/position-data-selrect shape)
-          (gsh/points->selrect (:points shape)))
+          (gsh/points->rect (:points shape)))
 
+        ;; FIXME: normalize rect update
         bounding-box
         (-> selrect
             (update :x - (+ stroke-width margin))

@@ -438,7 +438,7 @@
                           (every? #(apply gpt/close? %) (d/zip old-val new-val))
 
                           (= attr :selrect)
-                          (gsh/close-selrect? old-val new-val)
+                          (gsh/close-rect? old-val new-val)
 
                           :else
                           (= old-val new-val))]

@@ -90,7 +90,7 @@
   [props]
   (let [shape    (unchecked-get props "shape")
         bounds   (or (unchecked-get props "bounds")
-                     (gsh/points->selrect (:points shape)))
+                     (gsh/points->rect (:points shape)))
 
         shape-id (:id shape)
         thumb    (:thumbnail shape)
@@ -103,6 +103,7 @@
       {:id (dm/str "thumbnail-" shape-id)
        :href thumb
        :decoding "async"
+       ;; FIXME: performance rect
        :x (:x bounds)
        :y (:y bounds)
        :width (:width bounds)
