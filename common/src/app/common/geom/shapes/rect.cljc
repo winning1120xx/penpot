@@ -31,26 +31,15 @@
 ;; FIXME: optimize access using static props
 
 (defn make-rect
-  ([p1 p2]
-   (let [xp1 (:x p1)
-         yp1 (:y p1)
-         xp2 (:x p2)
-         yp2 (:y p2)
-         x1  (min xp1 xp2)
-         y1  (min yp1 yp2)
-         x2  (max xp1 xp2)
-         y2  (max yp1 yp2)]
-     (make-rect x1 y1 (- x2 x1) (- y2 y1))))
-
-  ([x y width height]
-   (when (d/num? x y width height)
-     (let [width (max width 0.01)
-           height (max height 0.01)]
-       (map->Rect
-        {:x x
-         :y y
-         :width width
-         :height height})))))
+  [x y width height]
+  (when (d/num? x y width height)
+    (let [width (max width 0.01)
+          height (max height 0.01)]
+      (map->Rect
+       {:x x
+        :y y
+        :width width
+        :height height}))))
 
 (defn make-selrect
   [x y width height]
@@ -68,21 +57,21 @@
 
 (defn close-rect?
   [rect1 rect2]
-  (and (mth/close? (:x rect1) (:x rect2))
-       (mth/close? (:y rect1) (:y rect2))
-       (mth/close? (:width rect1) (:width rect2))
-       (mth/close? (:height rect1) (:height rect2))))
+  (and ^boolean (mth/close? (:x rect1) (:x rect2))
+       ^boolean (mth/close? (:y rect1) (:y rect2))
+       ^boolean (mth/close? (:width rect1) (:width rect2))
+       ^boolean (mth/close? (:height rect1) (:height rect2))))
 
 (defn close-selrect?
   [selrect1 selrect2]
-  (and (mth/close? (:x selrect1) (:x selrect2))
-       (mth/close? (:y selrect1) (:y selrect2))
-       (mth/close? (:x1 selrect1) (:x1 selrect2))
-       (mth/close? (:y1 selrect1) (:y1 selrect2))
-       (mth/close? (:x2 selrect1) (:x2 selrect2))
-       (mth/close? (:y2 selrect1) (:y2 selrect2))
-       (mth/close? (:width selrect1) (:width selrect2))
-       (mth/close? (:height selrect1) (:height selrect2))))
+  (and ^boolean (mth/close? (:x selrect1) (:x selrect2))
+       ^boolean (mth/close? (:y selrect1) (:y selrect2))
+       ^boolean (mth/close? (:x1 selrect1) (:x1 selrect2))
+       ^boolean (mth/close? (:y1 selrect1) (:y1 selrect2))
+       ^boolean (mth/close? (:x2 selrect1) (:x2 selrect2))
+       ^boolean (mth/close? (:y2 selrect1) (:y2 selrect2))
+       ^boolean (mth/close? (:width selrect1) (:width selrect2))
+       ^boolean (mth/close? (:height selrect1) (:height selrect2))))
 
 (defn rect->points [{:keys [x y width height]}]
   (when (d/num? x y)
@@ -120,6 +109,8 @@
                  (rest pts)))
         (when (d/num? minx miny maxx maxy)
           (make-rect minx miny (- maxx minx) (- maxy miny)))))))
+
+;; FIXME: PERFORMANCE
 
 (defn bounds->rect
   [[{ax :x ay :y} {bx :x by :y} {cx :x cy :y} {dx :x dy :y}]]

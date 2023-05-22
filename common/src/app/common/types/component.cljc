@@ -14,12 +14,6 @@
 (def sync-attrs
   {:name                    :name-group
    :fills                   :fill-group
-   ;; FIXME: this should be deleted?
-   :fill-color              :fill-group
-   :fill-opacity            :fill-group
-   :fill-color-gradient     :fill-group
-   :fill-color-ref-file     :fill-group
-   :fill-color-ref-id       :fill-group
    :hide-fill-on-export     :fill-group
    :content                 :content-group
    :position-data           :content-group
@@ -34,16 +28,6 @@
    :line-height             :text-display-group
    :text-align              :text-display-group
    :strokes                 :stroke-group
-   :stroke-color            :stroke-group
-   :stroke-color-gradient   :stroke-group
-   :stroke-color-ref-file   :stroke-group
-   :stroke-color-ref-id     :stroke-group
-   :stroke-opacity          :stroke-group
-   :stroke-style            :stroke-group
-   :stroke-width            :stroke-group
-   :stroke-alignment        :stroke-group
-   :stroke-cap-start        :stroke-group
-   :stroke-cap-end          :stroke-group
    :rx                      :radius-group
    :ry                      :radius-group
    :r1                      :radius-group

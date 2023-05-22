@@ -256,7 +256,6 @@
 
 (defn add-bool [file data]
   (let [frame-id (:current-frame-id file)
-        ;; FIXME: missing parent-id attr?
         obj      (-> (cts/setup-shape (assoc data :type :bool :frame-id frame-id))
                      (check-name file :bool))]
     (-> file
