@@ -45,9 +45,10 @@
          (let [stopper (->> stream (rx/filter dwc/interrupt?))]
            (->> stream
                 (rx/filter (ptk/type? ::common/handle-finish-drawing))
+                (rx/map (constantly tool))
                 (rx/take 1)
                 (rx/observe-on :async)
-                (rx/map #(select-for-drawing tool))
+                (rx/map select-for-drawing)
                 (rx/take-until stopper))))
 
        ;; NOTE: comments are a special case and they manage they
