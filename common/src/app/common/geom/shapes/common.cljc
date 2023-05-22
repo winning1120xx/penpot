@@ -7,6 +7,7 @@
 (ns app.common.geom.shapes.common
   (:require
    [app.common.data :as d]
+   [app.common.data.macros :as dm]
    [app.common.geom.matrix :as gmt]
    [app.common.geom.point :as gpt]
    [app.common.geom.rect :as grc]
@@ -59,20 +60,24 @@
    (transform-points points nil matrix))
 
   ([points center matrix]
-   (if (and (d/not-empty? points) (gmt/matrix? matrix))
-     (let [prev (if center (gmt/translate-matrix center) (gmt/matrix))
-           post (if center (gmt/translate-matrix (gpt/negate center)) (gmt/matrix))
-
-           tr-point (fn [point]
-                      (gpt/transform point (gmt/multiply prev matrix post)))]
+   (if (and (gmt/matrix? matrix) (seq points))
+     (let [prev     (if center (gmt/translate-matrix center) (gmt/matrix))
+           post     (if center (gmt/translate-matrix (gpt/negate center)) (gmt/matrix))
+           tr-point #(gpt/transform % (gmt/multiply prev matrix post))]
        (mapv tr-point points))
      points)))
 
-;; FIXME: performance rect
 (defn transform-selrect
-  [{:keys [x1 y1 x2 y2] :as sr} matrix]
-  (let [[c1 c2] (transform-points [(gpt/point x1 y1) (gpt/point x2 y2)] matrix)]
-    (grc/corners->rect c1 c2)))
+  [selrect matrix]
+
+  (dm/assert! (grc/rect? selrect))
+
+  (let [x1 (dm/get-prop selrect :x1)
+        y1 (dm/get-prop selrect :y1)
+        x2 (dm/get-prop selrect :x2)
+        y2 (dm/get-prop selrect :y2)]
+    (let [[c1 c2] (transform-points [(gpt/point x1 y1) (gpt/point x2 y2)] matrix)]
+      (grc/corners->rect c1 c2))))
 
 (defn invalid-geometry?
   [{:keys [points selrect]}]

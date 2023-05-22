@@ -17,7 +17,7 @@
     (gpt/point (+ x width) y)
     (gpt/point (+ x width) (+ y height))
     (gpt/point x (+ y height))
-    (gsh/center-selrect selrect)})
+    (grc/rect->center selrect)})
 
 ;; FIXME: performance rect ???
 (defn- frame-snap-points [{:keys [x y width height blocked hidden] :as selrect}]

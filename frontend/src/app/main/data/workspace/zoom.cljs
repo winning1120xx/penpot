@@ -8,6 +8,7 @@
    [app.common.geom.align :as gal]
    [app.common.geom.matrix :as gmt]
    [app.common.geom.point :as gpt]
+   [app.common.geom.rect :as grc]
    [app.common.geom.shapes :as gsh]
    [app.common.pages.helpers :as cph]
    [app.main.data.workspace.state-helpers :as wsh]
@@ -19,13 +20,14 @@
   [{:keys [vbox] :as local} center zoom]
   (let [new-zoom (if (fn? zoom) (zoom (:zoom local)) zoom)
         old-zoom (:zoom local)
-        center (if center center (gsh/center-rect vbox))
-        scale (/ old-zoom new-zoom)
-        mtx  (gmt/scale-matrix (gpt/point scale) center)
-        vbox' (gsh/transform-rect vbox mtx)]
+        center   (if center center (grc/rect->center vbox))
+        scale    (/ old-zoom new-zoom)
+        mtx      (gmt/scale-matrix (gpt/point scale) center)
+        vbox'    (gsh/transform-rect vbox mtx)]
     (-> local
         (assoc :zoom new-zoom)
         (assoc :zoom-inverse (/ 1 new-zoom))
+        ;; FIXME: KKKK
         (update :vbox merge (select-keys vbox' [:x :y :width :height])))))
 
 (defn increase-zoom

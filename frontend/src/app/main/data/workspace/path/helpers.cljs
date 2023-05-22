@@ -29,7 +29,7 @@
   [content]
   (-> content
       gsh/content->selrect
-      gsh/center-selrect))
+      grc/rect->center))
 
 (defn content->points+selrect
   "Given the content of a shape, calculate its points and selrect"

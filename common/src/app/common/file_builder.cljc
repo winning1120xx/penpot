@@ -498,7 +498,7 @@
 (defn start-component
   ([file data] (start-component file data :group))
   ([file data root-type]
-   ;; FIXME: data probably can be a shape instance, then we can use shape->rect
+   ;; FIXME: data probably can be a shape instance, then we can use gsh/shape->rect
    (let [selrect (or (grc/make-rect (:x data) (:y data) (:width data) (:height data))
                      grc/empty-rect)
          name               (:name data)

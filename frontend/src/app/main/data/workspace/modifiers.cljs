@@ -10,6 +10,7 @@
    [app.common.data :as d]
    [app.common.data.macros :as dm]
    [app.common.geom.point :as gpt]
+   [app.common.geom.rect :as grc]
    [app.common.geom.shapes :as gsh]
    [app.common.math :as mth]
    [app.common.pages.helpers :as cph]
@@ -348,7 +349,7 @@
 ;; Rotation use different algorithm to calculate children modifiers (and do not use child constraints).
 (defn set-rotation-modifiers
   ([angle shapes]
-   (set-rotation-modifiers angle shapes (-> shapes gsh/selection-rect gsh/center-selrect)))
+   (set-rotation-modifiers angle shapes (-> shapes gsh/selection-rect grc/rect->center)))
 
   ([angle shapes center]
    (ptk/reify ::set-rotation-modifiers

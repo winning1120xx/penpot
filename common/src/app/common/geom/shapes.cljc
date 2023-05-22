@@ -159,8 +159,8 @@
 
 ;; EXPORTS
 (dm/export gco/center-shape)
-(dm/export gco/center-selrect)
-(dm/export gco/center-rect)
+;; (dm/export gco/center-selrect)
+;; (dm/export gco/center-rect)
 (dm/export gco/center-points)
 (dm/export gco/transform-points)
 

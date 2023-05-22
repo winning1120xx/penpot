@@ -122,12 +122,20 @@
          (gpt/point (+ x w) (+ y h))
          (gpt/point x (+ y h))]))))
 
+(defn rect->center
+  [rect]
+  (dm/assert! (rect? rect))
+  (let [x (dm/get-prop rect :x)
+        y (dm/get-prop rect :y)
+        w (dm/get-prop rect :width)
+        h (dm/get-prop rect :height)]
+    (when (d/num? x y w h)
+      (gpt/point (+ x (/ w 2.0))
+                 (+ y (/ h 2.0))))))
+
 (defn rect->lines
   [rect]
-
-  (dm/assert!
-   "expected rect instance"
-   (rect? rect))
+  (dm/assert! (rect? rect))
 
   (let [x (dm/get-prop rect :x)
         y (dm/get-prop rect :y)

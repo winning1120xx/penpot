@@ -304,7 +304,7 @@
     (watch [_ _ stream]
       (let [stoper          (rx/filter ms/mouse-up? stream)
             group           (gsh/selection-rect shapes)
-            group-center    (gsh/center-selrect group)
+            group-center    (grc/rect->center group)
             initial-angle   (gpt/angle @ms/mouse-position group-center)
 
             calculate-angle
@@ -804,7 +804,7 @@
             selected  (wsh/lookup-selected state {:omit-blocked? true})
             shapes    (map #(get objects %) selected)
             selrect   (gsh/selection-rect shapes)
-            center    (gsh/center-selrect selrect)
+            center    (grc/rect->center selrect)
             modifiers (dwm/create-modif-tree selected (ctm/resize-modifiers (gpt/point -1.0 1.0) center))]
         (rx/of (dwm/apply-modifiers {:modifiers modifiers}))))))
 
@@ -816,6 +816,6 @@
             selected  (wsh/lookup-selected state {:omit-blocked? true})
             shapes    (map #(get objects %) selected)
             selrect   (gsh/selection-rect shapes)
-            center    (gsh/center-selrect selrect)
+            center    (grc/rect->center selrect)
             modifiers (dwm/create-modif-tree selected (ctm/resize-modifiers (gpt/point 1.0 -1.0) center))]
         (rx/of (dwm/apply-modifiers {:modifiers modifiers}))))))

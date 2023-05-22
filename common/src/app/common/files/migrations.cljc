@@ -469,7 +469,6 @@
   (letfn [(update-object [object]
             (-> object
                 (d/update-when :selrect grc/make-rect)
-                ;; FIXME: better name & relocate geom
                 (cts/map->Shape)))
           (update-container [container]
             (d/update-when container :objects update-vals update-object))]
