@@ -8,6 +8,7 @@
   (:require
    [app.common.geom.matrix :as gmt]
    [app.common.geom.point :as gpt]
+   [app.common.geom.rect :as grc]
    [app.common.geom.shapes :as gsh]
    [app.common.math :as mth]
    [app.common.path.commands :as upc]
@@ -54,7 +55,7 @@
 
         ;; Calculates the new selrect with points given the old center
         points (-> (gsh/content->selrect base-content)
-                   (gsh/rect->points)
+                   (grc/rect->points)
                    (gsh/transform-points center transform))
 
         points-center (gsh/center-points points)
@@ -63,7 +64,7 @@
         ;; through points
         selrect (-> points
                     (gsh/transform-points points-center transform-inverse)
-                    (gsh/points->rect))]
+                    (grc/points->rect))]
     [points selrect]))
 
 (defn update-selrect

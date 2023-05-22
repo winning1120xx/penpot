@@ -92,7 +92,7 @@
               (let [selrect (gsh/shape->rect frame)]
                 (-> frame
                     (assoc :selrect selrect)
-                    (assoc :points (gsh/rect->points selrect))))))
+                    (assoc :points (grc/rect->points selrect))))))
 
           (fix-empty-points [shape]
             (let [shape (cond-> shape

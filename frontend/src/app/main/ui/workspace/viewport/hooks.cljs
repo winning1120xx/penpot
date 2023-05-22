@@ -8,6 +8,7 @@
   (:require
    [app.common.data :as d]
    [app.common.data.macros :as dm]
+   [app.common.geom.rect :as grc]
    [app.common.geom.shapes :as gsh]
    [app.common.pages :as cp]
    [app.common.pages.focus :as cpf]
@@ -138,7 +139,7 @@
          (mf/deps page-id)
          (fn [point]
            (let [zoom (mf/ref-val zoom-ref)
-                 rect (gsh/center->rect point (/ 5 zoom) (/ 5 zoom))]
+                 rect (grc/center->rect point (/ 5 zoom) (/ 5 zoom))]
              (if (mf/ref-val hover-disabled-ref)
                (rx/of nil)
                (->> (uw/ask-buffered!

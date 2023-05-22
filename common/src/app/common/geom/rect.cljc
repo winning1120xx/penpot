@@ -198,14 +198,10 @@
 
 (defn join-rects [rects]
   (when (seq rects)
-    ;; (js/console.trace (pr-str "KKKK1" rects))
     (let [minx (transduce xf-keep-x d/min ##Inf rects)
           miny (transduce xf-keep-y d/min ##Inf rects)
           maxx (transduce xf-keep-x2 d/max ##-Inf rects)
           maxy (transduce xf-keep-y2 d/max ##-Inf rects)]
-
-      (prn "KKKK2" minx miny maxx maxy)
-
       (when (d/num? minx miny maxx maxy)
         (make-rect minx miny (- maxx minx) (- maxy miny))))))
 
@@ -256,34 +252,44 @@
          (or (> py y1) (s= py y1))
          (or (< py y2) (s= py y2)))))
 
-(defn contains-selrect?
-  "Check if a selrect sr2 is contained inside sr1"
-  [sr1 sr2]
-  (and (>= (:x1 sr2) (:x1 sr1))
-       (<= (:x2 sr2) (:x2 sr1))
-       (>= (:y1 sr2) (:y1 sr1))
-       (<= (:y2 sr2) (:y2 sr1))))
+(defn contains-rect?
+  "Check if a rect srb is contained inside sra"
+  [sra srb]
+  (let [ax1 (dm/get-prop sra :x1)
+        ax2 (dm/get-prop sra :x2)
+        ay1 (dm/get-prop sra :y1)
+        ay2 (dm/get-prop sra :y2)
+        bx1 (dm/get-prop srb :x1)
+        bx2 (dm/get-prop srb :x2)
+        by1 (dm/get-prop srb :y1)
+        by2 (dm/get-prop srb :y2)]
+    (and (>= bx1 ax1)
+         (<= bx2 ax2)
+         (>= by1 ay1)
+         (<= by2 ay2))))
 
 (defn corners->rect
   ([p1 p2]
    (corners->rect (:x p1) (:y p1) (:x p2) (:y p2)))
   ([xp1 yp1 xp2 yp2]
-   (make-rect (min xp1 xp2) (min yp1 yp2) (abs (- xp1 xp2)) (abs (- yp1 yp2)))))
+   (make-rect (mth/min xp1 xp2)
+              (mth/min yp1 yp2)
+              (abs (- xp1 xp2))
+              (abs (- yp1 yp2)))))
 
-;; FIXME: performance rect
 (defn clip-rect
-  [sr bounds]
-  (when (some? sr)
-    (dm/assert! (and (rect? sr) (rect? bounds)))
-    (let [x1  (dm/get-prop sr :x1)
-          y1  (dm/get-prop sr :y1)
-          x2  (dm/get-prop sr :x2)
-          y2  (dm/get-prop sr :y2)
+  [selrect bounds]
+  (when (rect? selrect)
+    (dm/assert! (rect? bounds))
+    (let [x1  (dm/get-prop selrect :x1)
+          y1  (dm/get-prop selrect :y1)
+          x2  (dm/get-prop selrect :x2)
+          y2  (dm/get-prop selrect :y2)
           bx1 (dm/get-prop bounds :x1)
           by1 (dm/get-prop bounds :y1)
           bx2 (dm/get-prop bounds :x2)
           by2 (dm/get-prop bounds :y2)]
-      (corners->rect (max bx1 x1)
-                     (max by1 y1)
-                     (min bx2 x2)
-                     (min by2 y2)))))
+      (corners->rect (mth/max bx1 x1)
+                     (mth/max by1 y1)
+                     (mth/min bx2 x2)
+                     (mth/min by2 y2)))))

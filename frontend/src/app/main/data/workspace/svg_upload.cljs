@@ -13,6 +13,7 @@
    [app.common.geom.matrix :as gmt]
    [app.common.geom.proportions :as gpp]
    [app.common.geom.point :as gpt]
+   [app.common.geom.rect :as grc]
    [app.common.geom.shapes :as gsh]
    [app.common.math :as mth]
    [app.common.pages :as cp]
@@ -248,7 +249,7 @@
                           (gsh/transform-content svg-transform))
 
           selrect       (gsh/content->selrect content)
-          points        (gsh/rect->points selrect)
+          points        (grc/rect->points selrect)
 
           origin        (gpt/negate (gpt/point svg-data))]
 
@@ -267,7 +268,7 @@
 ;; FIXME: TODO
 
 (defn calculate-rect-metadata [rect-data transform]
-  (let [points (-> (gsh/rect->points rect-data)
+  (let [points (-> (grc/rect->points rect-data)
                    (gsh/transform-points transform))
 
         [selrect transform transform-inverse] (gsh/calculate-geometry points)]

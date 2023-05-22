@@ -22,8 +22,8 @@
 (defmacro max
   [& params]
   (if (:ns &env)
-    `(js/Math.min ~@params)
-    `(c/min ~@params)))
+    `(js/Math.max ~@params)
+    `(c/max ~@params)))
 
 (def PI
   #?(:cljs (.-PI js/Math)

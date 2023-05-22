@@ -12,7 +12,7 @@
    [app.common.exceptions :as ex]
    [app.common.geom.matrix :as gmt]
    [app.common.geom.point :as gpt]
-   [app.common.geom.rect :as gpr]
+   [app.common.geom.rect :as grc]
    [app.common.geom.shapes :as gsh]
    [app.common.pages.changes :as ch]
    [app.common.pprint :as pp]
@@ -499,8 +499,8 @@
   ([file data] (start-component file data :group))
   ([file data root-type]
    ;; FIXME: data probably can be a shape instance, then we can use shape->rect
-   (let [selrect (or (gpr/make-rect (:x data) (:y data) (:width data) (:height data))
-                     gpr/empty-rect)
+   (let [selrect (or (grc/make-rect (:x data) (:y data) (:width data) (:height data))
+                     grc/empty-rect)
          name               (:name data)
          path               (:path data)
          main-instance-id   (:main-instance-id data)

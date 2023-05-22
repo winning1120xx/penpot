@@ -14,6 +14,7 @@
    [app.common.geom.align :as gal]
    [app.common.geom.point :as gpt]
    [app.common.geom.proportions :as gpp]
+   [app.common.geom.rect :as grc]
    [app.common.geom.shapes :as gsh]
    [app.common.logging :as log]
    [app.common.pages :as cp]
@@ -2024,10 +2025,8 @@
             media     (vals (:media file-data'))
 
             media-points
-            (map #(assoc % :points (gsh/rect->points {:x 0
-                                                      :y 0
-                                                      :width (:width %)
-                                                      :height (:height %)}))
+            (map #(assoc % :points (-> (grc/make-rect 0 0 (:width %) (:height %))
+                                       (grc/rect->points)))
                  media)
 
             shape-grid

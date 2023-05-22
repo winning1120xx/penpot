@@ -7,51 +7,46 @@
 (ns app.common.geom.shapes.bounds
   (:require
    [app.common.data :as d]
+   [app.common.data.macros :as dm]
    [app.common.geom.rect :as grc]
    [app.common.math :as mth]
    [app.common.pages.helpers :as cph]))
 
 (defn shape-stroke-margin
   [shape stroke-width]
-  (if (= (:type shape) :path)
+  (if (cph/path-shape? shape)
     ;; TODO: Calculate with the stroke offset (not implemented yet
     (mth/sqrt (* 2 stroke-width stroke-width))
     (- (mth/sqrt (* 2 stroke-width stroke-width)) stroke-width)))
 
-;; FIXME: performance
-(defn blur-filters [type value]
-  (->> [value]
-       (remove :hidden)
-       (filter #(= (:type %) type))
-       (map #(hash-map :id (str "filter_" (:id %))
-                       :type (:type %)
-                       :params %))))
+(defn- apply-filters
+  [type filters]
+  (sequence
+   (comp
+    (remove :hidden)
+    (filter #(= (:style %) type))
+    (map (fn [item]
+           {:id (dm/str "filter_" (:id item))
+            :type type
+            :params item})))
+   filters))
 
-;; FIXME: performance
-(defn shadow-filters [type filters]
-  (->> filters
-       (remove :hidden)
-       (filter #(= (:style %) type))
-       (map #(hash-map :id (str "filter_" (:id %))
-                       :type (:style %)
-                       :params %))))
-
-(defn shape->filters
+(defn- shape->filters
   [shape]
   (d/concat-vec
    [{:id "BackgroundImageFix" :type :image-fix}]
 
    ;; Background blur won't work in current SVG specification
    ;; We can revisit this in the future
-   #_(->> shape :blur   (blur-filters   :background-blur))
+   #_(->> shape :blur (into []) (blur-filters :background-blur))
 
-   (->> shape :shadow (shadow-filters :drop-shadow))
+   (->> shape :shadow (apply-filters :drop-shadow))
    [{:id "shape" :type :blend-filters}]
-   (->> shape :shadow (shadow-filters :inner-shadow))
-   (->> shape :blur   (blur-filters   :layer-blur))))
+   (->> shape :shadow (apply-filters :inner-shadow))
+   (->> shape :blur   (into []) (apply-filters :layer-blur))))
 
 ;; FIXME: performance rect
-(defn calculate-filter-bounds [{:keys [x y width height]} filter-entry]
+(defn- calculate-filter-bounds [{:keys [x y width height]} filter-entry]
   (let [{:keys [offset-x offset-y blur spread] :or {offset-x 0 offset-y 0 blur 0 spread 0}} (:params filter-entry)
         filter-x (min x (+ x offset-x (- spread) (- blur) -5))
         filter-y (min y (+ y offset-y (- spread) (- blur) -5))
@@ -61,8 +56,6 @@
 
 (defn get-rect-filter-bounds
   [selrect filters blur-value]
-  (prn "get-rect-filter-bounds" selrect)
-
   (let [filter-bounds (->> filters
                            (filter #(= :drop-shadow (:type %)))
                            (map (partial calculate-filter-bounds selrect))

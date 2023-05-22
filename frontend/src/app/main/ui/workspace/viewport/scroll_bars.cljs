@@ -7,6 +7,7 @@
 (ns app.main.ui.workspace.viewport.scroll-bars
   (:require
    [app.common.colors :as clr]
+   [app.common.geom.rect :as grc]
    [app.common.geom.shapes :as gsh]
    [app.common.pages.helpers :as cph]
    [app.main.data.workspace :as dw]
@@ -164,7 +165,7 @@
                                        :width (:width vbox)
                                        :height (:height vbox)}
 
-                containing-rect       (gsh/join-rects [base-objects-rect vbox-rect])
+                containing-rect       (grc/join-rects [base-objects-rect vbox-rect])
                 height-factor         (/ (:height containing-rect) vbox-height)
                 width-factor          (/ (:width containing-rect) vbox-width)]
 

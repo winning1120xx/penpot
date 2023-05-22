@@ -11,6 +11,7 @@
    [app.common.files.features :as ffeat]
    [app.common.geom.matrix :as gmt]
    [app.common.geom.point :as gpt]
+   [app.common.geom.rect :as grc]
    [app.common.geom.shapes :as gsh]
    [app.common.math :as mth]
    [app.common.pages :as cp]
@@ -438,7 +439,7 @@
                           (every? #(apply gpt/close? %) (d/zip old-val new-val))
 
                           (= attr :selrect)
-                          (gsh/close-rect? old-val new-val)
+                          (grc/close-rect? old-val new-val)
 
                           :else
                           (= old-val new-val))]

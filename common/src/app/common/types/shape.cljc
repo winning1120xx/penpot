@@ -14,6 +14,7 @@
    [app.common.geom.proportions :as gpr]
    [app.common.geom.matrix :as gmt]
    [app.common.geom.point :as gpt]
+   [app.common.geom.rect :as grc]
    [app.common.geom.shapes :as gsh]
    [app.common.schema :as sm]
    [app.common.types.color :as ctc]
@@ -390,7 +391,7 @@
   "Initializes the selrect and points for a shape."
   [{:keys [selrect points] :as shape}]
   (let [selrect (or selrect (gsh/shape->rect shape))
-        points  (or points  (gsh/rect->points selrect))]
+        points  (or points  (grc/rect->points selrect))]
     (-> shape
         (assoc :selrect selrect)
         (assoc :points points))))
@@ -398,7 +399,7 @@
 (defn setup-path
   [{:keys [content selrect points] :as shape}]
   (let [selrect (or selrect (gsh/content->selrect content))
-        points  (or points  (gsh/rect->points selrect))]
+        points  (or points  (grc/rect->points selrect))]
     (-> shape
         (assoc :selrect selrect)
         (assoc :points points))))

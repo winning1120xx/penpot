@@ -164,18 +164,6 @@
 (dm/export gco/center-points)
 (dm/export gco/transform-points)
 
-;; FIXME: remove this
-;; (dm/export grc/make-rect)
-(dm/export grc/update-rect)
-(dm/export grc/rect->points)
-(dm/export grc/close-rect?)
-(dm/export grc/points->rect)
-(dm/export grc/center->rect)
-(dm/export grc/join-rects)
-(dm/export grc/contains-selrect?)
-(dm/export grc/contains-point?)
-;; (dm/export grc/clip-rect)
-
 (dm/export gtr/move)
 (dm/export gtr/absolute-move)
 (dm/export gtr/transform-matrix)

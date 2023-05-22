@@ -8,6 +8,7 @@
   (:require
    [app.common.data :as d]
    [app.common.data.macros :as dm]
+   [app.common.geom.rect :as grc]
    [app.common.geom.shapes :as gsh]
    [app.common.geom.shapes.bounds :as gsb]
    [app.common.pages.helpers :as cph]
@@ -51,7 +52,7 @@
         selrect
         (if (cph/text-shape? shape)
           (gsh/position-data-selrect shape)
-          (gsh/points->rect (:points shape)))
+          (grc/points->rect (:points shape)))
 
         ;; FIXME: normalize rect update
         bounding-box

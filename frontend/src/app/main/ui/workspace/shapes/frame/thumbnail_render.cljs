@@ -8,6 +8,7 @@
   (:require
    [app.common.data :as d]
    [app.common.data.macros :as dm]
+   [app.common.geom.rect :as grc]
    [app.common.geom.shapes :as gsh]
    [app.common.math :as mth]
    [app.config :as cf]
@@ -85,7 +86,7 @@
         {:keys [x y width height] :as shape-bb}
         (if (:show-content shape)
           (gsh/selection-rect (concat [shape] all-children))
-          (-> shape :points gsh/points->rect))
+          (-> shape :points grc/points->rect))
 
         svg-uri*          (mf/use-state nil)
         bitmap-uri*       (mf/use-state nil)

@@ -8,6 +8,7 @@
   (:require
    [app.common.data.macros :as dm]
    [app.common.geom.point :as gpt]
+   [app.common.geom.rect :as grc]
    [app.common.geom.shapes :as gsh]
    [app.common.geom.shapes.flex-layout :as gsl]
    [app.common.geom.shapes.path :as gsp]
@@ -38,7 +39,7 @@
                                       (conj point))
                          content  (gsp/segments->content segments)
                          selrect  (gsh/content->selrect content)
-                         points   (gsh/rect->points selrect)]
+                         points   (grc/rect->points selrect)]
                      (-> object
                          (assoc :segments segments)
                          (assoc :content content)
@@ -75,7 +76,7 @@
                    (let [segments (ups/simplify segments simplify-tolerance)
                          content  (gsp/segments->content segments)
                          selrect  (gsh/content->selrect content)
-                         points   (gsh/rect->points selrect)]
+                         points   (grc/rect->points selrect)]
 
                      (-> shape
                          (dissoc :segments)

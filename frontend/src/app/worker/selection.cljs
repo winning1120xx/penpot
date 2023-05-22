@@ -7,6 +7,7 @@
 (ns app.worker.selection
   (:require
    [app.common.data :as d]
+   [app.common.geom.rect :as grc]
    [app.common.geom.shapes :as gsh]
    [app.common.geom.shapes.text :as gte]
    [app.common.pages :as cp]
@@ -33,7 +34,7 @@
             (gte/position-data-bounding-box shape)
 
             :else
-            (gsh/points->rect (:points shape)))
+            (grc/points->rect (:points shape)))
           shape-bound #js {:x x :y y :width width :height height}
 
           parents      (get parents-index (:id shape))
@@ -177,7 +178,7 @@
              ;; we can update the index. Otherwise we need to
              ;; re-create it.
              (if (and (some? index)
-                      (gsh/contains-selrect? old-bounds new-bounds))
+                      (grc/contains-rect? old-bounds new-bounds))
                (update-index index old-objects new-objects)
                (create-index new-objects)))))
   nil)

@@ -7,6 +7,7 @@
 (ns app.common.geom.align
   (:require
    [app.common.data.macros :as dm]
+   [app.common.geom.rect :as grc]
    [app.common.geom.shapes :as gsh]
    [app.common.pages.helpers :refer [get-children]]))
 
@@ -133,7 +134,7 @@
          (-> srect
              (update :x #(- % padding))
              (assoc :width width')
-             (gsh/update-rect :position)))
+             (grc/update-rect :position)))
 
        (< gprop lprop)
        (let [height' (/ (* height lprop) gprop)
@@ -141,7 +142,7 @@
          (-> srect
              (update :y #(- % padding))
              (assoc :height height')
-             (gsh/update-rect :position)))
+             (grc/update-rect :position)))
 
        :else
-       (gsh/update-rect srect :position)))))
+       (grc/update-rect srect :position)))))

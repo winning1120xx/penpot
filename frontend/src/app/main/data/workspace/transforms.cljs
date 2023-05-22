@@ -11,6 +11,7 @@
    [app.common.data.macros :as dm]
    [app.common.geom.matrix :as gmt]
    [app.common.geom.point :as gpt]
+   [app.common.geom.rect :as grc]
    [app.common.geom.shapes :as gsh]
    [app.common.geom.shapes.flex-layout :as gslf]
    [app.common.geom.shapes.grid-layout :as gslg]
@@ -698,7 +699,7 @@
             shape   (get objects id)
 
             ;; FIXME: performance rect
-            bbox (-> shape :points gsh/points->rect)
+            bbox (-> shape :points grc/points->rect)
 
             cpos (gpt/point (:x bbox) (:y bbox))
             pos  (gpt/point (or (:x position) (:x bbox))
