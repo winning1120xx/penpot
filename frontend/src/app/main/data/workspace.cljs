@@ -1014,7 +1014,7 @@
 (defn align-objects-list
   [objects selected axis]
   (let [selected-objs (map #(get objects %) selected)
-        rect (gsh/selection-rect selected-objs)]
+        rect (gsh/shapes->rect selected-objs)]
     (mapcat #(gal/align-to-rect % rect axis objects) selected-objs)))
 
 (defn can-distribute? [selected]
@@ -1648,7 +1648,7 @@
                   selected-objs        (map #(get paste-objects %) selected)
                   first-selected-obj   (first selected-objs)
                   page-selected        (wsh/lookup-selected state)
-                  wrapper              (gsh/selection-rect selected-objs)
+                  wrapper              (gsh/shapes->rect selected-objs)
                   orig-pos             (gpt/point (:x1 wrapper) (:y1 wrapper))
                   frame-id             (first page-selected)
                   frame-object         (get page-objects frame-id)

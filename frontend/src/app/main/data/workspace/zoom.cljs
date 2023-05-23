@@ -76,7 +76,7 @@
       (let [page-id (:current-page-id state)
             objects (wsh/lookup-page-objects state page-id)
             shapes  (cph/get-immediate-children objects)
-            srect   (gsh/selection-rect shapes)]
+            srect   (gsh/shapes->rect shapes)]
         (if (empty? shapes)
           state
           (update state :workspace-local
@@ -99,7 +99,7 @@
                 objects (wsh/lookup-page-objects state page-id)
                 srect   (->> selected
                              (map #(get objects %))
-                             (gsh/selection-rect))]
+                             (gsh/shapes->rect))]
             (update state :workspace-local
                     (fn [{:keys [vport] :as local}]
                       (let [srect (gal/adjust-to-viewport vport srect {:padding 40})

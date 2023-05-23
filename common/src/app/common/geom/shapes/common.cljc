@@ -13,19 +13,18 @@
    [app.common.geom.rect :as grc]
    [app.common.math :as mth]))
 
-;; (defn center-rect
-;;   [{:keys [x y width height]}]
-;;   (when (d/num? x y width height)
-;;     (gpt/point (+ x (/ width 2.0))
-;;                (+ y (/ height 2.0)))))
-
-;; (defn center-selrect
-;;   "Calculate the center of the selrect."
-;;   [selrect]
-;;   (center-rect selrect))
-
 (def ^:private xf-keep-x (keep #(dm/get-prop % :x)))
 (def ^:private xf-keep-y (keep #(dm/get-prop % :y)))
+
+(defn shapes->rect
+  "Returns a rect that contains all the shapes and is aware of the
+  rotation of each shape. Mainly used for multiple selection."
+  [shapes]
+  (->> shapes
+       (keep (fn [shape]
+               (-> (dm/get-prop shape :points)
+                   (grc/points->rect))))
+       (grc/join-rects)))
 
 (defn points->center
   [points]
@@ -70,11 +69,11 @@
 (defn invalid-geometry?
   [{:keys [points selrect]}]
 
-  (or (mth/nan? (:x selrect))
-      (mth/nan? (:y selrect))
-      (mth/nan? (:width selrect))
-      (mth/nan? (:height selrect))
-      (some (fn [p]
-              (or (mth/nan? (:x p))
-                  (mth/nan? (:y p))))
-            points)))
+  (or ^boolean (mth/nan? (:x selrect))
+      ^boolean (mth/nan? (:y selrect))
+      ^boolean (mth/nan? (:width selrect))
+      ^boolean (mth/nan? (:height selrect))
+      ^boolean (some (fn [p]
+                       (or ^boolean (mth/nan? (:x p))
+                           ^boolean (mth/nan? (:y p))))
+                     points)))

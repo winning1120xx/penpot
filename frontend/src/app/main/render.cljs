@@ -164,7 +164,7 @@
 (defn adapt-root-frame
   [objects object]
   (let [shapes   (cph/get-immediate-children objects)
-        srect    (gsh/selection-rect shapes)
+        srect    (gsh/shapes->rect shapes)
         object   (merge object (select-keys srect [:x :y :width :height]))]
     (assoc object :fill-color "#f0f0f0")))
 

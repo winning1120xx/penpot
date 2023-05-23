@@ -52,7 +52,7 @@
 
 (defn get-snap
   [coord {:keys [shapes page-id remove-snap? zoom]}]
-  (let [bounds (gsh/selection-rect shapes)
+  (let [bounds (gsh/shapes->rect shapes)
         frame-id  (snap/snap-frame-id shapes)]
 
     (->> (rx/of bounds)

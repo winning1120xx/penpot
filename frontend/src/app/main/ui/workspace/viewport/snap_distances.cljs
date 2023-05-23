@@ -268,7 +268,7 @@
         selected-shapes (unchecked-get props "selected-shapes")
         frame-id        (-> selected-shapes first :frame-id)
         frame           (mf/deref (refs/object-by-id frame-id))
-        selrect         (gsh/selection-rect selected-shapes)]
+        selrect         (gsh/shapes->rect selected-shapes)]
 
     (when-not (ctl/any-layout? frame)
       [:g.distance

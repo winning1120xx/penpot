@@ -41,7 +41,7 @@
             (let [page-id (:current-page-id state)
                   objects (wsh/lookup-page-objects state page-id)
                   shapes  (cph/get-immediate-children objects)
-                  srect   (gsh/selection-rect shapes)
+                  srect   (gsh/shapes->rect shapes)
                   local   (assoc local :vport size :zoom 1 :zoom-inverse 1)]
               (cond
                 (or (not (d/num? (:width srect)))

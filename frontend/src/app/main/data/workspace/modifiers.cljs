@@ -349,7 +349,7 @@
 ;; Rotation use different algorithm to calculate children modifiers (and do not use child constraints).
 (defn set-rotation-modifiers
   ([angle shapes]
-   (set-rotation-modifiers angle shapes (-> shapes gsh/selection-rect grc/rect->center)))
+   (set-rotation-modifiers angle shapes (-> shapes gsh/shapes->rect grc/rect->center)))
 
   ([angle shapes center]
    (ptk/reify ::set-rotation-modifiers

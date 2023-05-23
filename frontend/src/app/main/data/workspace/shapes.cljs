@@ -343,7 +343,7 @@
         new-index (or index
                       (cph/get-index-replacement selected objects))]
     (when (d/not-empty? selected)
-      (let [srect       (gsh/selection-rect selected-objs)
+      (let [srect       (gsh/shapes->rect selected-objs)
             selected-id (first selected)
 
             frame-id    (dm/get-in objects [selected-id :frame-id])

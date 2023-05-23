@@ -249,7 +249,7 @@
 (mf/defc measurement
   [{:keys [bounds frame selected-shapes hover-shape zoom]}]
   (let [selected-ids          (into #{} (map :id) selected-shapes)
-        selected-selrect      (gsh/selection-rect selected-shapes)
+        selected-selrect      (gsh/shapes->rect selected-shapes)
         hover-selrect         (-> hover-shape :points grc/points->rect)
         bounds-selrect        (bound->selrect bounds)
         hover-selected-shape? (not (contains? selected-ids (:id hover-shape)))]

@@ -303,7 +303,7 @@
     ptk/WatchEvent
     (watch [_ _ stream]
       (let [stoper          (rx/filter ms/mouse-up? stream)
-            group           (gsh/selection-rect shapes)
+            group           (gsh/shapes->rect shapes)
             group-center    (grc/rect->center group)
             initial-angle   (gpt/angle @ms/mouse-position group-center)
 
@@ -803,7 +803,7 @@
       (let [objects   (wsh/lookup-page-objects state)
             selected  (wsh/lookup-selected state {:omit-blocked? true})
             shapes    (map #(get objects %) selected)
-            selrect   (gsh/selection-rect shapes)
+            selrect   (gsh/shapes->rect shapes)
             center    (grc/rect->center selrect)
             modifiers (dwm/create-modif-tree selected (ctm/resize-modifiers (gpt/point -1.0 1.0) center))]
         (rx/of (dwm/apply-modifiers {:modifiers modifiers}))))))
@@ -815,7 +815,7 @@
       (let [objects   (wsh/lookup-page-objects state)
             selected  (wsh/lookup-selected state {:omit-blocked? true})
             shapes    (map #(get objects %) selected)
-            selrect   (gsh/selection-rect shapes)
+            selrect   (gsh/shapes->rect shapes)
             center    (grc/rect->center selrect)
             modifiers (dwm/create-modif-tree selected (ctm/resize-modifiers (gpt/point 1.0 -1.0) center))]
         (rx/of (dwm/apply-modifiers {:modifiers modifiers}))))))

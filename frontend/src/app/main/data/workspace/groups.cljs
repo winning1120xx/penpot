@@ -76,7 +76,7 @@
                     (:name (first shapes))
                     base-name)
 
-        selrect   (gsh/selection-rect shapes)
+        selrect   (gsh/shapes->rect shapes)
         group-idx (->> shapes
                        last
                        :id

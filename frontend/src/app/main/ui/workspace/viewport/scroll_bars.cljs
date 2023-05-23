@@ -54,7 +54,7 @@
         base-objects-rect         (mf/with-memo [objects]
                                     (-> objects
                                         (cph/get-immediate-children)
-                                        (gsh/selection-rect)))
+                                        (gsh/shapes->rect)))
 
         inv-zoom                 (/ 1 zoom)
         vbox-height              (- (:height vbox) (* inv-zoom scroll-height))

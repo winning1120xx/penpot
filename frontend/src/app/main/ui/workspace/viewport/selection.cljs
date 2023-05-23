@@ -363,7 +363,7 @@
   (let [shape (mf/use-memo
                (mf/deps shapes)
                #(->> shapes
-                     (gsh/selection-rect)
+                     (gsh/shapes->rect)
                      (cts/setup-shape)))
         on-resize
         (fn [current-position _initial-position event]
@@ -390,7 +390,7 @@
   (let [shape (mf/use-memo
                (mf/deps shapes)
                #(->> shapes
-                     (gsh/selection-rect)
+                     (gsh/shapes->rect)
                      (cts/setup-shape)))]
 
     [:& controls-selection

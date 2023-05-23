@@ -32,7 +32,7 @@
   the shape with the given rectangle. If the shape is a group,
   move also all of its recursive children."
   [shape rect axis objects]
-  (let [wrapper-rect (gsh/selection-rect [shape])
+  (let [wrapper-rect (gsh/shapes->rect [shape])
         align-pos (calc-align-pos wrapper-rect rect axis)
         delta {:x (- (:x align-pos) (:x wrapper-rect))
                :y (- (:y align-pos) (:y wrapper-rect))}]
@@ -81,11 +81,11 @@
         other-coord (if (= axis :horizontal) :y :x)
         size (if (= axis :horizontal) :width :height)
         ; The rectangle that wraps the whole selection
-        wrapper-rect (gsh/selection-rect shapes)
+        wrapper-rect (gsh/shapes->rect shapes)
         ; Sort shapes by the center point in the given axis
         sorted-shapes (sort-by #(coord (gsh/shape->center %)) shapes)
         ; Each shape wrapped in its own rectangle
-        wrapped-shapes (map #(gsh/selection-rect [%]) sorted-shapes)
+        wrapped-shapes (map #(gsh/shapes->rect [%]) sorted-shapes)
         ; The total space between shapes
         space (reduce - (size wrapper-rect) (map size wrapped-shapes))]
 

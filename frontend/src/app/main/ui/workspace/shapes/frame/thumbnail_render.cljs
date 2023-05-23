@@ -85,7 +85,7 @@
         ;; FIXME: performance rect
         {:keys [x y width height] :as shape-bb}
         (if (:show-content shape)
-          (gsh/selection-rect (concat [shape] all-children))
+          (gsh/shapes->rect (concat [shape] all-children))
           (-> shape :points grc/points->rect))
 
         svg-uri*          (mf/use-state nil)

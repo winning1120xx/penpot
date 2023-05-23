@@ -23,22 +23,6 @@
 
 ;; --- Outer Rect
 
-;; FIXME: rename to shapes->rect and move to rect
-(defn selection-rect
-  "Returns a rect that contains all the shapes and is aware of the
-  rotation of each shape. Mainly used for multiple selection."
-  [shapes]
-  (->> shapes
-       (keep (comp grc/points->rect :points))
-       (grc/join-rects)))
-
-(defn shapes->rect
-  "Returns a rect that contains all the shapes and is aware of the
-  rotation of each shape. Mainly used for multiple selection."
-  [shapes]
-  (->> shapes
-       (keep (comp grc/points->rect :points))
-       (grc/join-rects)))
 
 (defn translate-to-frame
   [shape {:keys [x y]}]
@@ -100,7 +84,6 @@
          (update :width (comp inc inc))
          (update :height (comp inc inc))))))
 
-;; FIXME: performance rect
 (defn get-areas
   [bounds selrect]
   (let [bound-x1 (dm/get-prop bounds :x1)
@@ -168,8 +151,7 @@
 
 ;; EXPORTS
 (dm/export gco/shape->center)
-;; (dm/export gco/center-selrect)
-;; (dm/export gco/center-rect)
+(dm/export gco/shapes->rect)
 (dm/export gco/points->center)
 (dm/export gco/transform-points)
 

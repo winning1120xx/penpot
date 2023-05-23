@@ -508,13 +508,6 @@
       (gco/transform-points mtx)
       (grc/points->rect)))
 
-(defn selection-rect
-  "Returns a rect that contains all the shapes and is aware of the
-  rotation of each shape. Mainly used for multiple selection."
-  [shapes]
-  (->> shapes
-       (map (comp grc/points->rect :points transform-shape))
-       (grc/join-rects)))
 
 (declare apply-group-modifiers)
 

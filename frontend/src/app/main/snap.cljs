@@ -229,7 +229,7 @@
   [page-id shapes objects zoom movev]
   (let [frame-id (snap-frame-id shapes)
         frame (get objects frame-id)
-        selrect (->> shapes (map #(gsh/move % movev)) gsh/selection-rect)]
+        selrect (->> shapes (map #(gsh/move % movev)) gsh/shapes->rect)]
     (->> (rx/of (vector frame selrect))
          (rx/merge-map
           (fn [[frame selrect]]
@@ -275,7 +275,7 @@
 
         snap-points
         (->> shapes
-             (gsh/selection-rect)
+             (gsh/shapes->rect)
              (sp/selrect-snap-points)
              ;; Move the points in the translation vector
              (map #(gpt/add % movev)))]

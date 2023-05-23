@@ -57,7 +57,7 @@
   (-> objects
       (dissoc uuid/zero)
       vals
-      gsh/selection-rect))
+      gsh/shapes->rect))
 
 (defn add-padding-bounds
   "Adds a padding to the bounds defined as a percent in the constant `padding-percent`.
@@ -81,7 +81,7 @@
         clip-parents-index (cp/create-clip-index objects parents-index)
 
         root-shapes        (cph/get-immediate-children objects uuid/zero)
-        bounds             (-> root-shapes gsh/selection-rect add-padding-bounds)
+        bounds             (-> root-shapes gsh/shapes->rect add-padding-bounds)
 
         index-shape        (make-index-shape objects parents-index clip-parents-index)
         initial-quadtree   (qdt/create (clj->js bounds))
