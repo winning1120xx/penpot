@@ -31,7 +31,7 @@
    [app.common.transit :as t]
    [clojure.set :as set]))
 
-(defrecord Shape [id name x y width height selrect points transform transform-inverse parent-id frame-id])
+(defrecord Shape [id name type x y width height selrect points transform transform-inverse parent-id frame-id])
 
 (defn shape?
   [o]

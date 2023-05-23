@@ -34,52 +34,54 @@
 (defn frame-shape?
   ([objects id]
    (frame-shape? (get objects id)))
-  ([{:keys [type]}]
-   (= type :frame)))
+  ([shape]
+   (= :frame (dm/get-prop shape :type))))
 
 (defn group-shape?
   ([objects id]
    (group-shape? (get objects id)))
-  ([{:keys [type]}]
-   (= type :group)))
+  ([shape]
+   (= :group (dm/get-prop shape :type))))
 
 (defn mask-shape?
-  [{:keys [type masked-group?]}]
-  (and (= type :group) masked-group?))
+  [shape]
+  (and ^boolean (group-shape? shape)
+       ^boolean (:masked-group? shape)))
 
 (defn bool-shape?
-  [{:keys [type]}]
-  (= type :bool))
+  [shape]
+  (= :bool (dm/get-prop shape :type)))
 
 (defn group-like-shape?
-  [{:keys [type]}]
-  (or (= :group type) (= :bool type)))
+  [shape]
+  (or ^boolean (group-shape? shape)
+      ^boolean (bool-shape? shape)))
 
 (defn text-shape?
-  [{:keys [type]}]
-  (= type :text))
+  [shape]
+  (= :text (dm/get-prop shape :type)))
 
 (defn rect-shape?
-  [{:keys [type]}]
-  (= type :rect))
+  [shape]
+  (= :rect (dm/get-prop shape :type)))
 
 (defn image-shape?
-  [{:keys [type]}]
-  (= type :image))
+  [shape]
+  (= :image (dm/get-prop shape :type)))
 
 (defn svg-raw-shape?
-  [{:keys [type]}]
-  (= type :svg-raw))
+  [shape]
+  (= :svg-raw (dm/get-prop shape :type)))
 
 (defn path-shape?
-  [{:keys [type]}]
-  (= type :path))
+  [shape]
+  (= :path (dm/get-prop shape :type)))
 
 (defn unframed-shape?
   "Checks if it's a non-frame shape in the top level."
   [shape]
   (and (not (frame-shape? shape))
-       (= (:frame-id shape) uuid/zero)))
+       (= (dm/get-prop shape :frame-id) uuid/zero)))
 
 (defn has-children?
   ([objects id]
