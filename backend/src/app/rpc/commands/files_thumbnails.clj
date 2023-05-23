@@ -122,7 +122,6 @@
     (-> (get-file-thumbnail conn file-id revn)
         (rph/with-http-cache long-cache-duration))))
 
-
 ;; --- COMMAND QUERY: get-file-data-for-thumbnail
 
 ;; FIXME: performance issue, handle new media_id
