@@ -4,8 +4,7 @@
 ;;
 ;; Copyright (c) KALEIDOS INC
 
-(ns app.common.file-builder
-  "A version parsing helper."
+(ns app.common.files.builder
   (:require
    [app.common.data :as d]
    [app.common.data.macros :as dm]
