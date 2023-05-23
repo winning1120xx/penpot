@@ -58,7 +58,10 @@
    (when (d/num? x y width height)
      (let [w (mth/max width 0.01)
            h (mth/max height 0.01)]
-      (->Rect x y w h x y (+ x w) (+ y h))))))
+      (->Rect x y w h x y (+ x w) (+ y h)))))
+
+  ([x y w h x1 y1 x2 y2]
+   (->Rect x y w h x1 y1 x2 y2)))
 
 (def empty-rect
   (make-rect 0 0 0.01 0.01))

@@ -24,27 +24,47 @@
 
 #?(:clj (set! *warn-on-reflection* true))
 
+(defn- valid-point?
+  [o]
+  (and ^boolean (gpt/point? o)
+       ^boolean (d/num? (dm/get-prop o :x)
+                        (dm/get-prop o :y))))
+
 ;; --- Relative Movement
 
-;; FIXME: performance rect
-(defn- move-selrect [{:keys [x y x1 y1 x2 y2 width height] :as selrect} {dx :x dy :y :as pt}]
-  (if (and (some? selrect) (some? pt) (d/num? dx dy))
-    (grc/make-rect
-     {:x      (if (d/num? x)  (+ dx x)  x)
-      :y      (if (d/num? y)  (+ dy y)  y)
-      :x1     (if (d/num? x1) (+ dx x1) x1)
-      :y1     (if (d/num? y1) (+ dy y1) y1)
-      :x2     (if (d/num? x2) (+ dx x2) x2)
-      :y2     (if (d/num? y2) (+ dy y2) y2)
-      :width  width
-      :height height})
+(defn- move-selrect
+  [selrect pt]
+  (if (and ^boolean (some? selrect)
+           ^boolean (valid-point? pt))
+    (let [x  (dm/get-prop selrect :x)
+          y  (dm/get-prop selrect :y)
+          w  (dm/get-prop selrect :width)
+          h  (dm/get-prop selrect :height)
+          x1 (dm/get-prop selrect :x1)
+          y1 (dm/get-prop selrect :y1)
+          x2 (dm/get-prop selrect :x2)
+          y2 (dm/get-prop selrect :y2)
+          dx (dm/get-prop pt :x)
+          dy (dm/get-prop pt :y)]
+
+      (grc/make-rect
+       (if ^boolean (d/num? x) (+ dx x)  x)
+       (if ^boolean (d/num? y)  (+ dy y)  y)
+       w
+       h
+       (if ^boolean (d/num? x1) (+ dx x1) x1)
+       (if ^boolean (d/num? y1) (+ dy y1) y1)
+       (if ^boolean (d/num? x2) (+ dx x2) x2)
+       (if ^boolean (d/num? y2) (+ dy y2) y2)))
     selrect))
 
-(defn- move-points [points move-vec]
-  (cond->> points
-    (d/num? (:x move-vec) (:y move-vec))
-    (mapv #(gpt/add % move-vec))))
+(defn- move-points
+  [points move-vec]
+  (if (valid-point? move-vec)
+    (mapv #(gpt/add % move-vec) points)
+    points))
 
+;; FIXME: revisit performance
 (defn move-position-data
   ([position-data {:keys [x y]}]
    (move-position-data position-data x y))
