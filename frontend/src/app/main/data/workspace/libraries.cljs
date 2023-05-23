@@ -24,9 +24,11 @@
    [app.common.uuid :as uuid]
    [app.main.data.events :as ev]
    [app.main.data.messages :as msg]
+   [app.main.data.workspace :as-alias dw]
    [app.main.data.workspace.changes :as dch]
    [app.main.data.workspace.groups :as dwg]
    [app.main.data.workspace.libraries-helpers :as dwlh]
+   [app.main.data.workspace.notifications :as-alias dwn]
    [app.main.data.workspace.selection :as dws]
    [app.main.data.workspace.shapes :as dwsh]
    [app.main.data.workspace.state-helpers :as wsh]
@@ -864,11 +866,11 @@
   (ptk/reify ::watch-component-changes
     ptk/WatchEvent
     (watch [_ state stream]
-      (let [components-v2 (features/active-feature? state :components-v2)
+      (let [components-v2? (features/active-feature? state :components-v2)
 
             stopper
             (->> stream
-                 (rx/filter #(or (= :app.main.data.workspace/finalize-page (ptk/type %))
+                 (rx/filter #(or (= ::dw/finalize-page (ptk/type %))
                                  (= ::watch-component-changes (ptk/type %)))))
 
             workspace-data-s
@@ -877,29 +879,30 @@
                   (rx/from-atom refs/workspace-data {:emit-current-value? true}))
                  ;; Need to get the file data before the change, so deleted shapes
                  ;; still exist, for example
-                 (rx/buffer 3 1))
+                 (rx/buffer 3 1)
+                 (rx/filter (fn [[old-data]] (some? old-data))))
 
             change-s
             (->> stream
                  (rx/filter #(or (dch/commit-changes? %)
-                                 (= (ptk/type %) :app.main.data.workspace.notifications/handle-file-change)))
+                                 (ptk/type? % ::dwn/handle-file-change)))
                  (rx/observe-on :async))
 
             check-changes
             (fn [[event [old-data _mid_data _new-data]]]
               (let [{:keys [changes save-undo? undo-group]} (deref event)
-                    components-changed (reduce #(into %1 (ch/components-changed old-data %2))
-                                               #{}
-                                               changes)]
-                (when (and (d/not-empty? components-changed) save-undo?)
-                  (log/info :msg "DETECTED COMPONENTS CHANGED"
-                            :ids (map str components-changed)
+                    changed-components (->> changes
+                                            (map (partial ch/components-changed old-data))
+                                            (reduce into #{}))]
+                (when (and (seq changed-components) save-undo?)
+                  (log/info :hint "DETECTED COMPONENTS CHANGED"
+                            :ids (mapv str changed-components)
                             :undo-group undo-group)
-                  (run! st/emit!
-                        (map #(update-component-sync % (:id old-data) undo-group)
-                             components-changed)))))]
+                  (->> changed-components
+                       (map #(update-component-sync % (:id old-data) undo-group))
+                       (run! st/emit!)))))]
 
-        (when components-v2
+        (when components-v2?
           (->> change-s
                (rx/with-latest-from workspace-data-s)
                (rx/map check-changes)
