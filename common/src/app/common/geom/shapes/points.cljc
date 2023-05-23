@@ -94,7 +94,6 @@
 
 (defn parent-coords-bounds
   [child-bounds [p1 p2 _ p4 :as parent-bounds]]
-
   (if (empty? child-bounds)
     parent-bounds
 
@@ -111,10 +110,10 @@
           (fn [[th-min th-max tv-min tv-max] current-point]
             (let [cth (project-t current-point rh vv)
                   ctv (project-t current-point rv hv)]
-              [(min th-min cth)
-               (max th-max cth)
-               (min tv-min ctv)
-               (max tv-max ctv)]))
+              [(mth/min th-min cth)
+               (mth/max th-max cth)
+               (mth/min tv-min ctv)
+               (mth/max tv-max ctv)]))
 
           [th-min th-max tv-min tv-max]
           (->> child-bounds
@@ -141,14 +140,6 @@
 (defn merge-parent-coords-bounds
   [bounds parent-bounds]
   (parent-coords-bounds (flatten bounds) parent-bounds))
-
-;; FIXME: rename rect, seems redundant because grc/points->rect altready exists
-(defn points->selrect
-  [points]
-  (let [width  (width-points points)
-        height (height-points points)
-        center (gco/points->center points)]
-    (grc/center->rect center width height)))
 
 (defn move
   [bounds vector]
