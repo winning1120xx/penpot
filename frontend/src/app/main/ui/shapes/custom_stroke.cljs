@@ -11,6 +11,7 @@
    [app.common.geom.rect :as grc]
    [app.common.geom.shapes :as gsh]
    [app.common.geom.shapes.bounds :as gsb]
+   [app.common.geom.shapes.text :as gst]
    [app.common.pages.helpers :as cph]
    [app.main.ui.context :as muc]
    [app.main.ui.shapes.attrs :as attrs]
@@ -51,7 +52,7 @@
 
         selrect
         (if (cph/text-shape? shape)
-          (gsh/position-data-selrect shape)
+          (gst/position-data-rect shape)
           (grc/points->rect (:points shape)))
 
         ;; FIXME: normalize rect update

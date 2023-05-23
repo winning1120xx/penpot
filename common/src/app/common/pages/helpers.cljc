@@ -35,13 +35,15 @@
   ([objects id]
    (frame-shape? (get objects id)))
   ([shape]
-   (= :frame (dm/get-prop shape :type))))
+   (and (some? shape)
+        (= :frame (dm/get-prop shape :type)))))
 
 (defn group-shape?
   ([objects id]
    (group-shape? (get objects id)))
   ([shape]
-   (= :group (dm/get-prop shape :type))))
+   (and (some? shape)
+        (= :group (dm/get-prop shape :type)))))
 
 (defn mask-shape?
   [shape]
@@ -50,7 +52,8 @@
 
 (defn bool-shape?
   [shape]
-  (= :bool (dm/get-prop shape :type)))
+  (and (some? shape)
+       (= :bool (dm/get-prop shape :type))))
 
 (defn group-like-shape?
   [shape]
@@ -59,28 +62,34 @@
 
 (defn text-shape?
   [shape]
-  (= :text (dm/get-prop shape :type)))
+  (and (some? shape)
+       (= :text (dm/get-prop shape :type))))
 
 (defn rect-shape?
   [shape]
-  (= :rect (dm/get-prop shape :type)))
+  (and (some? shape)
+       (= :rect (dm/get-prop shape :type))))
 
 (defn image-shape?
   [shape]
-  (= :image (dm/get-prop shape :type)))
+  (and (some? shape)
+       (= :image (dm/get-prop shape :type))))
 
 (defn svg-raw-shape?
   [shape]
-  (= :svg-raw (dm/get-prop shape :type)))
+  (and (some? shape)
+       (= :svg-raw (dm/get-prop shape :type))))
 
 (defn path-shape?
   [shape]
-  (= :path (dm/get-prop shape :type)))
+  (and (some? shape)
+       (= :path (dm/get-prop shape :type))))
 
 (defn unframed-shape?
   "Checks if it's a non-frame shape in the top level."
   [shape]
-  (and (not (frame-shape? shape))
+  (and (some? shape)
+       (not (frame-shape? shape))
        (= (dm/get-prop shape :frame-id) uuid/zero)))
 
 (defn has-children?
@@ -93,8 +102,7 @@
 
 (defn get-children-ids
   [objects id]
-  (letfn [(get-children-ids-rec
-            [id processed]
+  (letfn [(get-children-ids-rec [id processed]
             (when (not (contains? processed id))
               (when-let [shapes (-> (get objects id) :shapes (some-> vec))]
                 (into shapes (mapcat #(get-children-ids-rec % (conj processed id))) shapes))))]
@@ -112,19 +120,21 @@
 (defn get-parent
   "Retrieve the id of the parent for the shape-id (if exists)"
   [objects id]
-  (let [lookup (d/getf objects)]
-    (-> id lookup :parent-id lookup)))
+  (when-let [shape (get objects id)]
+    (get objects (dm/get-prop shape :parent-id))))
 
 (defn get-parent-id
   "Retrieve the id of the parent for the shape-id (if exists)"
   [objects id]
-  (-> objects (get id) :parent-id))
+  (when-let [shape (get objects id)]
+    (dm/get-prop shape :parent-id)))
 
 (defn get-parent-ids
   "Returns a vector of parents of the specified shape."
   [objects shape-id]
-  (loop [result [] id shape-id]
-    (let [parent-id (dm/get-in objects [id :parent-id])]
+  (loop [result []
+         id shape-id]
+    (let [parent-id (get-parent-id objects id)]
       (if (and (some? parent-id) (not= parent-id id))
         (recur (conj result parent-id) parent-id)
         result))))
@@ -132,12 +142,12 @@
 (defn hidden-parent?
   "Checks the parent for the hidden property"
   [objects shape-id]
-  (let [parent-id (dm/get-in objects [shape-id :parent-id])]
-    (cond
-      (or (nil? parent-id) (nil? shape-id) (= shape-id uuid/zero) (= parent-id uuid/zero)) false
-      (dm/get-in objects [parent-id :hidden]) true
-      :else
-      (recur objects parent-id))))
+  (let [parent-id (get-parent-id objects shape-id)]
+    (if (or (nil? parent-id) (nil? shape-id) (= shape-id uuid/zero) (= parent-id uuid/zero))
+      false
+      (if ^boolean (dm/get-in objects [parent-id :hidden])
+        true
+        (recur objects parent-id)))))
 
 (defn get-parent-ids-with-index
   "Returns a tuple with the list of parents and a map with the position within each parent"
@@ -145,10 +155,10 @@
   (loop [parent-list []
          parent-indices {}
          current shape-id]
-    (let [parent-id (dm/get-in objects [current :parent-id])
-          parent (get objects parent-id)]
+    (let [parent-id (get-parent-id objects current)
+          parent    (get objects parent-id)]
       (if (and (some? parent) (not= parent-id current))
-        (let [parent-list (conj parent-list parent-id)
+        (let [parent-list    (conj parent-list parent-id)
               parent-indices (assoc parent-indices parent-id (d/index-of (:shapes parent) current))]
           (recur parent-list parent-indices parent-id))
         [parent-list parent-indices]))))
@@ -156,7 +166,7 @@
 (defn get-siblings-ids
   [objects id]
   (let [parent (get-parent objects id)]
-    (into [] (->> (:shapes parent) (remove #(= % id))))))
+    (into [] (remove #(= % id)) (:shapes parent))))
 
 (defn get-frame
   "Get the frame that contains the shape. If the shape is already a
@@ -168,7 +178,7 @@
      (map? shape-or-id)
      (if (frame-shape? shape-or-id)
        shape-or-id
-       (get objects (:frame-id shape-or-id)))
+       (get objects (dm/get-prop shape-or-id :frame-id)))
 
      (= uuid/zero shape-or-id)
      (get objects uuid/zero)
@@ -218,7 +228,6 @@
         shapes (:shapes prt)
         pos (d/index-of shapes id)]
     (if (= 0 pos) nil (nth shapes (dec pos)))))
-
 
 (defn get-immediate-children
   "Retrieve resolved shape objects that are immediate children

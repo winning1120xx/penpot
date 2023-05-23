@@ -28,9 +28,9 @@
     ;; FIXME: performance rect
     (let [{:keys [x y width height]}
           (cond
-            (and (= :text (:type shape))
-                 (some? (:position-data shape))
-                 (d/not-empty? (:position-data shape)))
+            (and ^boolean (cph/text-shape? shape)
+                 ^boolean (some? (:position-data shape))
+                 ^boolean (d/not-empty? (:position-data shape)))
             (gte/position-data-bounding-box shape)
 
             :else

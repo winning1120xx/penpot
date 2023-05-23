@@ -200,6 +200,3 @@
 
 ;; Modifiers
 (dm/export gsm/set-objects-modifiers)
-
-;; Text
-(dm/export gst/position-data-selrect)

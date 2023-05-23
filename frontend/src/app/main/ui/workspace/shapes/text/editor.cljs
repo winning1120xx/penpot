@@ -12,6 +12,7 @@
    [app.common.geom.shapes :as gsh]
    [app.common.geom.shapes.text :as gsht]
    [app.common.text :as txt]
+   [app.common.math :as mth]
    [app.config :as cf]
    [app.main.data.workspace :as dw]
    [app.main.data.workspace.texts :as dwt]
@@ -258,22 +259,25 @@
 
 (mf/defc text-editor-svg
   {::mf/wrap-props false}
-  [props]
-  (let [shape     (obj/get props "shape")
-        modifiers (obj/get props "modifiers")
-        modifiers (get-in modifiers [(:id shape) :modifiers])
+  [{:keys [shape modifiers]}]
+  (let [shape-id  (dm/get-prop shape :id)
+        modifiers (dm/get-in modifiers [shape-id :modifiers])
 
-        clip-id
-        (dm/str "text-edition-clip" (:id shape))
+        clip-id   (dm/str "text-edition-clip" shape-id)
 
         text-modifier-ref
-        (mf/use-memo (mf/deps (:id shape)) #(refs/workspace-text-modifier-by-id (:id shape)))
+        (mf/with-memo [shape-id]
+          (refs/workspace-text-modifier-by-id shape-id))
 
         text-modifier
         (mf/deref text-modifier-ref)
 
-        ;; For Safari It's necesary to scale the editor with the zoom level to fix
-        ;; a problem with foreignObjects not scaling correctly with the viewbox
+        ;; For Safari It's necesary to scale the editor with the zoom
+        ;; level to fix a problem with foreignObjects not scaling
+        ;; correctly with the viewbox
+        ;;
+        ;; NOTE: this teoretically breaks hooks rules, but in practice
+        ;; it is imposible to really break it
         maybe-zoom
         (when (cf/check-browser? :safari)
           (mf/deref refs/selected-zoom))
@@ -285,12 +289,16 @@
                 (some? modifiers)
                 (gsh/transform-shape modifiers))
 
-        bounding-box (gsht/position-data-selrect shape)
+        bounding-box (gsht/position-data-rect shape)
 
-        x      (min (:x bounding-box) (:x shape))
-        y      (min (:y bounding-box) (:y shape))
-        width  (max (:width bounding-box) (:width shape))
-        height (max (:height bounding-box) (:height shape))]
+        x      (mth/min (dm/get-prop bounding-box :x)
+                        (dm/get-prop shape :x))
+        y      (mth/min (dm/get-prop bounding-box :y)
+                        (dm/get-prop shape :y))
+        width  (mth/max (dm/get-prop bounding-box :width)
+                        (dm/get-prop shape :width))
+        height (mth/max (dm/get-prop bounding-box :height)
+                        (dm/get-prop shape :height))]
 
     [:g.text-editor {:clip-path (dm/fmt "url(#%)" clip-id)
                      :transform (dm/str (gsh/transform-matrix shape))}
@@ -305,8 +313,11 @@
      [:foreignObject {:x x :y y :width width :height height}
       [:div {:style {:position "fixed"
                      :left 0
-                     :top  (- (:y shape) y)
+                     :top  (- (dm/get-prop shape :y) y)
                      :pointer-events "all"
                      :transform-origin "top left"
-                     :transform (when maybe-zoom (dm/fmt "scale(%)" maybe-zoom))}}
-       [:& text-shape-edit-html {:shape shape :key (str (:id shape))}]]]]))
+                     :transform (when (some? maybe-zoom)
+                                  (dm/fmt "scale(%)" maybe-zoom))}}
+       [:& text-shape-edit-html
+        {:shape shape
+         :key (dm/str shape-id)}]]]]))
