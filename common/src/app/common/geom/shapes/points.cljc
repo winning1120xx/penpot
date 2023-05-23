@@ -7,6 +7,7 @@
 (ns app.common.geom.shapes.points
   (:require
    [app.common.data :as d]
+   [app.common.data.macros :as dm]
    [app.common.geom.point :as gpt]
    [app.common.geom.rect :as grc]
    [app.common.geom.shapes.common :as gco]
@@ -141,11 +142,12 @@
   [bounds parent-bounds]
   (parent-coords-bounds (flatten bounds) parent-bounds))
 
+;; FIXME: rename rect, seems redundant because grc/points->rect altready exists
 (defn points->selrect
   [points]
-  (let [width (width-points points)
+  (let [width  (width-points points)
         height (height-points points)
-        center (gco/center-points points)]
+        center (gco/points->center points)]
     (grc/center->rect center width height)))
 
 (defn move

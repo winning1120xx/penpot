@@ -33,7 +33,7 @@
   (when (and (not blocked) (not hidden))
     (case (:type shape)
       :frame (-> shape :points grc/points->rect frame-snap-points)
-      (into #{(gsh/center-shape shape)} (:points shape)))))
+      (into #{(gsh/shape->center shape)} (:points shape)))))
 
 (defn guide-snap-points
   [guide frame]

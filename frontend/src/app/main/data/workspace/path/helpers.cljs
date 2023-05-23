@@ -46,7 +46,7 @@
           flip-y (gmt/scale (gpt/point 1 -1))
           :always (gmt/multiply (:transform-inverse shape (gmt/matrix))))
 
-        center (or (gsh/center-shape shape)
+        center (or (gsh/shape->center shape)
                    (content-center content))
 
         base-content (gsh/transform-content
@@ -58,7 +58,7 @@
                    (grc/rect->points)
                    (gsh/transform-points center transform))
 
-        points-center (gsh/center-points points)
+        points-center (gsh/points->center points)
 
         ;; Points is now the selrect but the center is different so we can create the selrect
         ;; through points

@@ -83,7 +83,7 @@
         ; The rectangle that wraps the whole selection
         wrapper-rect (gsh/selection-rect shapes)
         ; Sort shapes by the center point in the given axis
-        sorted-shapes (sort-by #(coord (gsh/center-shape %)) shapes)
+        sorted-shapes (sort-by #(coord (gsh/shape->center %)) shapes)
         ; Each shape wrapped in its own rectangle
         wrapped-shapes (map #(gsh/selection-rect [%]) sorted-shapes)
         ; The total space between shapes

@@ -108,7 +108,7 @@
             (let [{:keys [width height]} (:selrect shape)
                   {:keys [rotation]} shape
 
-                  shape-center (gsh/center-shape shape)
+                  shape-center (gsh/shape->center shape)
                   shape-transform (:transform shape)
                   shape-transform-inverse (:transform-inverse shape)
 

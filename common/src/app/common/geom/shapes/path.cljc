@@ -9,7 +9,7 @@
    [app.common.data :as d]
    [app.common.geom.matrix :as gmt]
    [app.common.geom.point :as gpt]
-   [app.common.geom.shapes.common :as gsc]
+   [app.common.geom.shapes.common :as gco]
    [app.common.geom.rect :as grc]
    [app.common.math :as mth]
    [app.common.path.commands :as upc]
@@ -943,7 +943,7 @@
   [content]
   (-> content
       content->selrect
-      gsc/center-selrect))
+      grc/rect->center))
 
 (defn content->points+selrect
   "Given the content of a shape, calculate its points and selrect"
@@ -960,7 +960,7 @@
           flip-y (gmt/scale (gpt/point 1 -1))
           :always (gmt/multiply (:transform-inverse shape (gmt/matrix))))
 
-        center (or (gsc/center-shape shape)
+        center (or (gco/shape->center shape)
                    (content-center content))
 
         base-content (transform-content
@@ -970,14 +970,14 @@
         ;; Calculates the new selrect with points given the old center
         points (-> (content->selrect base-content)
                    (grc/rect->points)
-                   (gsc/transform-points center transform))
+                   (gco/transform-points center transform))
 
-        points-center (gsc/center-points points)
+        points-center (gco/points->center points)
 
         ;; Points is now the selrect but the center is different so we can create the selrect
         ;; through points
         selrect (-> points
-                    (gsc/transform-points points-center transform-inverse)
+                    (gco/transform-points points-center transform-inverse)
                     (grc/points->rect))]
     [points selrect]))
 

@@ -1696,7 +1696,7 @@
 
                         delta (if (= origin-frame-id uuid/zero)
                                 ;; When the origin isn't in a frame the result is pasted in the center.
-                                (gpt/subtract (gsh/center-shape frame-object) (grc/rect->center wrapper))
+                                (gpt/subtract (gsh/shape->center frame-object) (grc/rect->center wrapper))
                                 ;; When pasting from one frame to another frame the object
                                 ;; position must be limited to container boundaries. If
                                 ;; the pasted object doesn't fit we try to:
@@ -1828,7 +1828,7 @@
           page-objects  (wsh/lookup-page-objects state)
           frame-id (first page-selected)
           frame-object (get page-objects frame-id)]
-      (gsh/center-shape frame-object))
+      (gsh/shape->center frame-object))
 
     :else
     (deref ms/mouse-position)))

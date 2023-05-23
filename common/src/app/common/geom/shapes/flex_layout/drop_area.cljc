@@ -83,7 +83,7 @@
         v-center? (and col? (ctl/v-center? frame))
         v-end?    (and row? (ctl/v-end? frame))
 
-        center (gco/center-shape frame)
+        center (gco/shape->center frame)
         start-p (gmt/transform-point-center start-p center transform-inverse)
 
         line-width
@@ -190,7 +190,7 @@
           (-> (ctm/empty)
               (ctm/resize (gpt/point (if flip-x -1.0 1.0)
                                      (if flip-y -1.0 1.0))
-                          (gco/center-shape shape)
+                          (gco/shape->center shape)
                           transform
                           transform-inverse))]
       [(gtr/transform-shape shape modifiers) modifiers])
@@ -212,6 +212,6 @@
   [frame-id objects position]
   (let [frame       (get objects frame-id)
         drop-areas  (get-drop-areas frame objects)
-        position    (gmt/transform-point-center position (gco/center-shape frame) (:transform-inverse frame))
+        position    (gmt/transform-point-center position (gco/shape->center frame) (:transform-inverse frame))
         area        (d/seek #(grc/contains-point? % position) drop-areas)]
     (:index area)))

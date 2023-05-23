@@ -107,7 +107,7 @@
    (transform-matrix shape nil))
 
   ([shape params]
-   (transform-matrix shape params (or (gco/center-shape shape) (gpt/point 0 0))))
+   (transform-matrix shape params (or (gco/shape->center shape) (gpt/point 0 0))))
 
   ([{:keys [flip-x flip-y transform] :as shape} {:keys [no-flip]} shape-center]
    (-> (gmt/matrix)
@@ -138,7 +138,7 @@
 
 (defn inverse-transform-matrix
   ([shape]
-   (let [shape-center (or (gco/center-shape shape)
+   (let [shape-center (or (gco/shape->center shape)
                           (gpt/point 0 0))]
      (inverse-transform-matrix shape shape-center)))
   ([{:keys [flip-x flip-y] :as shape} center]
@@ -240,7 +240,9 @@
   [points]
   (let [width  (calculate-width points)
         height (calculate-height points)
-        center (gco/center-points points)
+
+        ;; FIXME: looks redundant, we can convert points to rect directly
+        center (gco/points->center points)
         sr     (grc/center->rect center width height)
 
         points-transform-mtx (transform-points-matrix sr points)
@@ -387,7 +389,7 @@
   (let [;; Points for every shape inside the group
         points (->> children (mapcat :points))
 
-        shape-center (gco/center-points points)
+        shape-center (gco/points->center points)
 
         ;; Fixed problem with empty groups. Should not happen (but it does)
         points (if (empty? points) (:points group) points)

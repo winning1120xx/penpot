@@ -289,7 +289,7 @@
   [{:keys [position-data] :as shape} rect]
 
   (if (and (some? position-data) (d/not-empty? position-data))
-    (let [center    (gco/center-shape shape)
+    (let [center    (gco/shape->center shape)
 
           transform-rect
           (fn [rect-points]
