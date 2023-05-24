@@ -37,6 +37,7 @@
    (if (rect? data)
      data
      (map->Rect data)))
+
   ([p1 p2]
 
    (dm/assert!
@@ -77,6 +78,17 @@
       (assoc rect
              :x2 (+ x w)
              :y2 (+ y h)))
+
+    :corners
+    (let [x1 (dm/get-prop rect :x1)
+          y1 (dm/get-prop rect :y1)
+          x2 (dm/get-prop rect :x2)
+          y2 (dm/get-prop rect :y2)]
+      (assoc rect
+             :x (mth/min x1 x2)
+             :y (mth/min y1 y2)
+             :width (mth/abs (- x2 x1))
+             :height (mth/abs (- y2 y1))))
 
     :position
     (let [x (dm/get-prop rect :x)

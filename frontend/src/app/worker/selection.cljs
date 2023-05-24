@@ -18,6 +18,8 @@
    [clojure.set :as set]
    [okulary.core :as l]))
 
+;; FIXME: performance shape & rect static props
+
 (def ^:const padding-percent 0.10)
 
 (defonce state (l/atom {}))
@@ -25,7 +27,6 @@
 (defn make-index-shape
   [objects parents-index clip-parents-index]
   (fn [index shape]
-    ;; FIXME: performance rect
     (let [{:keys [x y width height]}
           (cond
             (and ^boolean (cph/text-shape? shape)
@@ -35,6 +36,7 @@
 
             :else
             (grc/points->rect (:points shape)))
+
           shape-bound #js {:x x :y y :width width :height height}
 
           parents      (get parents-index (:id shape))
