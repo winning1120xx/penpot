@@ -304,75 +304,90 @@
 (def default-shape-attrs
   {})
 
-(def default-frame-attrs
+(def ^:private minimal-rect-attrs
+  {:type :rect
+   :name "Rectangle"
+   :fills [{:fill-color default-color
+            :fill-opacity 1}]
+   :strokes []
+   :rx 0
+   :ry 0})
+
+(def ^:private minimal-image-attrs
+  {:type :image
+   :rx 0
+   :ry 0
+   :fills []
+   :strokes []})
+
+(def ^:private minimal-frame-attrs
   {:frame-id uuid/zero
    :fills [{:fill-color clr/white
             :fill-opacity 1}]
+   :name "Board"
    :strokes []
    :shapes []
    :hide-fill-on-export false})
 
-(def ^:private minimal-shapes
-  [{:type :rect
-    :name "Rectangle"
-    :fills [{:fill-color default-color
-             :fill-opacity 1}]
-    :strokes []
-    :rx 0
-    :ry 0}
+(def ^:private minimal-circle-attrs
+  {:type :circle
+   :name "Ellipse"
+   :fills [{:fill-color default-color
+            :fill-opacity 1}]
+   :strokes []})
 
-   {:type :image
-    :rx 0
-    :ry 0
-    :fills []
-    :strokes []}
+(def ^:private minimal-group-attrs
+  {:type :group
+   :name "Group"
+   :shapes []})
 
-   {:type :circle
-    :name "Ellipse"
-    :fills [{:fill-color default-color
-             :fill-opacity 1}]
-    :strokes []}
+(def ^:private minimal-bool-attrs
+  {:type :bool
+   :name "Bool"
+   :shapes []})
 
-   {:type :path
-    :name "Path"
-    :fills []
-    :strokes [{:stroke-style :solid
-               :stroke-alignment :center
-               :stroke-width 2
-               :stroke-color clr/black
-               :stroke-opacity 1}]}
+;; FIXME: revisit
+(def ^:private minimal-text-attrs
+  {:type :text
+   :name "Text"})
 
-   {:type :frame
-    :name "Board"
-    :fills [{:fill-color clr/white
-             :fill-opacity 1}]
-    :strokes []
-    :shapes []}
+(def ^:private minimal-path-attrs
+  {:type :path
+   :name "Path"
+   :fills []
+   :strokes [{:stroke-style :solid
+              :stroke-alignment :center
+              :stroke-width 2
+              :stroke-color clr/black
+              :stroke-opacity 1}]})
 
-   {:type :bool
-    :name "Bool"
-    :shapes []}
+(def ^:private minimal-svg-raw-attrs
+  {:type :svg-raw
+   :fills []
+   :strokes []})
 
-   {:type :group
-    :name "Group"
-    :shapes []}
+(def ^:private minimal-multiple-attrs
+  {:type :multiple})
 
-   {:type :text
-    :name "Text"
-    :content nil}
-
-   {:type :svg-raw
-    :fills []
-    :strokes []}])
+(defn- get-minimal-shape
+  [type]
+  (case type
+    :rect minimal-rect-attrs
+    :image minimal-image-attrs
+    :circle minimal-circle-attrs
+    :path minimal-path-attrs
+    :frame minimal-frame-attrs
+    :bool minimal-bool-attrs
+    :group minimal-group-attrs
+    :text minimal-text-attrs
+    :svg-raw minimal-svg-raw-attrs
+    ;; NOTE: used for create ephimeral shapes for multiple selection
+    :multiple minimal-multiple-attrs))
 
 (defn- make-minimal-shape
   [type]
   (let [type  (if (= type :curve) :path type)
-        attrs (d/seek #(= type (:type %)) minimal-shapes)]
-
-    (dm/verify!
-     "expected a valid shape type"
-     (map? attrs))
+        attrs (get-minimal-shape type)]
 
     (cond-> attrs
       (not= :path type)

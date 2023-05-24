@@ -179,7 +179,7 @@
   (let [layout (mf/deref refs/workspace-layout)
         scale-text (:scale-text layout)
         cursor (if (#{:top-left :bottom-right} position)
-                 (if scale-text (cur/scale-nesw rotation) (cur/resize-nesw rotation)) 
+                 (if scale-text (cur/scale-nesw rotation) (cur/resize-nesw rotation))
                  (if scale-text (cur/scale-nwse rotation) (cur/resize-nwse rotation)))
         {cx' :x cy' :y} (gpt/transform (gpt/point cx cy) transform)]
 
@@ -360,11 +360,11 @@
 
 (mf/defc multiple-handlers
   [{:keys [shapes selected zoom color disable-handlers] :as props}]
-  (let [shape (mf/use-memo
-               (mf/deps shapes)
-               #(->> shapes
-                     (gsh/shapes->rect)
-                     (cts/setup-shape)))
+  (let [shape (mf/with-memo [shapes]
+                (-> shapes
+                    (gsh/shapes->rect)
+                    (assoc :type :multiple)
+                    (cts/setup-shape)))
         on-resize
         (fn [current-position _initial-position event]
           (when (dom/left-mouse? event)
@@ -387,11 +387,11 @@
 
 (mf/defc multiple-selection
   [{:keys [shapes zoom color disable-handlers on-move-selected on-context-menu] :as props}]
-  (let [shape (mf/use-memo
-               (mf/deps shapes)
-               #(->> shapes
-                     (gsh/shapes->rect)
-                     (cts/setup-shape)))]
+  (let [shape (mf/with-memo [shapes]
+                (-> shapes
+                    (gsh/shapes->rect)
+                    (assoc :type :multiple)
+                    (cts/setup-shape)))]
 
     [:& controls-selection
      {:shape shape
