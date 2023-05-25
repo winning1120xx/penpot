@@ -275,7 +275,7 @@
         snap-points
         (->> shapes
              (gsh/shapes->rect)
-             (sp/selrect-snap-points)
+             (sp/rect->snap-points)
              ;; Move the points in the translation vector
              (map #(gpt/add % movev)))]
 

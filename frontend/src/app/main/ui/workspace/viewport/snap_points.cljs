@@ -58,7 +58,7 @@
     (->> (rx/of bounds)
          (rx/flat-map
           (fn [bounds]
-            (->> (sp/selrect-snap-points bounds)
+            (->> (sp/rect->snap-points bounds)
                  (map #(vector frame-id %)))))
 
          (rx/flat-map

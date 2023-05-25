@@ -72,12 +72,15 @@
 
 (defn- add-frame
   [objects page-data frame]
-  (let [frame-id (:id frame)
-        parent-id (:parent-id frame)
-        frame-data (->> (snap/shape-snap-points frame)
-                        (mapv #(array-map :type :shape
-                                          :id frame-id
-                                          :pt %)))
+  (let [frame-id    (:id frame)
+        parent-id   (:parent-id frame)
+
+        frame-data  (if (:blocked frame)
+                     []
+                     (->> (snap/shape->snap-points frame)
+                          (mapv #(array-map :type :shape
+                                            :id frame-id
+                                            :pt %))))
         grid-x-data (get-grids-snap-points frame :x)
         grid-y-data (get-grids-snap-points frame :y)]
 
@@ -101,7 +104,9 @@
 (defn- add-shape
   [objects page-data shape]
   (let [frame-id    (:frame-id shape)
-        snap-points (snap/shape-snap-points shape)
+        snap-points (if (:blocked shape)
+                      []
+                      (snap/shape->snap-points shape))
         shape-data  (->> snap-points
                          (mapv #(array-map
                                  :type :shape
@@ -119,7 +124,7 @@
   [objects page-data guide]
 
   (let [frame (get objects (:frame-id guide))
-        guide-data (->> (snap/guide-snap-points guide frame)
+        guide-data (->> (snap/guide->snap-points guide frame)
                         (mapv #(array-map
                                 :type :guide
                                 :id (:id guide)
