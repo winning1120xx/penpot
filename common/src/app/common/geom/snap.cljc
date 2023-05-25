@@ -4,7 +4,7 @@
 ;;
 ;; Copyright (c) KALEIDOS INC
 
-(ns app.util.geom.snap-points
+(ns app.common.geom.snap
   (:require
    [app.common.data.macros :as dm]
    [app.common.geom.point :as gpt]
@@ -48,7 +48,6 @@
 
 (defn guide->snap-points
   [guide frame]
-
   (cond
     (and (some? frame)
          (not ^boolean (ctst/rotated-frame? frame))

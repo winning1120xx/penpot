@@ -9,10 +9,10 @@
    [app.common.data :as d]
    [app.common.data.macros :as dm]
    [app.common.geom.shapes :as gsh]
+   [app.common.geom.snap :as sp]
    [app.common.pages.helpers :as cph]
    [app.common.types.shape.layout :as ctl]
    [app.main.snap :as snap]
-   [app.util.geom.snap-points :as sp]
    [beicon.core :as rx]
    [rumext.v2 :as mf]))
 
