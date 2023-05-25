@@ -84,6 +84,7 @@
                        inc)
 
         group     (cts/setup-shape {:type :group
+                                    :name gname
                                     :shapes (mapv :id shapes)
                                     :selrect selrect
                                     :parent-id parent-id

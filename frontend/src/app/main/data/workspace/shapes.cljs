@@ -8,7 +8,6 @@
   (:require
    [app.common.data :as d]
    [app.common.data.macros :as dm]
-   [app.common.geom.proportions :as gpp]
    [app.common.geom.shapes :as gsh]
    [app.common.pages.changes-builder :as pcb]
    [app.common.pages.helpers :as cph]
@@ -28,21 +27,16 @@
    [app.main.data.workspace.state-helpers :as wsh]
    [app.main.data.workspace.undo :as dwu]
    [app.main.features :as features]
-   [app.main.streams :as ms]
    [beicon.core :as rx]
    [potok.core :as ptk]))
 
 (defn prepare-add-shape
-  [changes shape objects selected]
-  (let [id       (:id shape)
-        name     (:name shape)
+  [changes shape objects _selected]
+  ;; FIXME: validate
+  ;; (prn "add-shape")
+  ;; (app.common.pprint/pprint shape)
 
-        ;; FIXME: validate
-
-        _        (prn "add-shape")
-        _        (app.common.pprint/pprint shape)
-
-        ;; WTF: index again? revisit please
+  (let [;; WTF: index again? revisit please
         index   (:index (meta shape))
 
         changes (-> changes
@@ -337,6 +331,8 @@
 ;; Artboard
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
+;; FIXME: looks
 (defn prepare-create-artboard-from-selection
   [changes id parent-id objects selected index frame-name without-fill?]
   (let [selected-objs (map #(get objects %) selected)

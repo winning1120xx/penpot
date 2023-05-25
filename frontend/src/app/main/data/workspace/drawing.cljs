@@ -8,7 +8,6 @@
   "Drawing interactions."
   (:require
    [app.common.data.macros :as dm]
-   [app.common.types.shape :as cts]
    [app.common.uuid :as uuid]
    [app.main.data.workspace.common :as dwc]
    [app.main.data.workspace.drawing.box :as box]

@@ -11,7 +11,6 @@
    [app.common.geom.point :as gpt]
    [app.common.geom.shapes :as gsh]
    [app.common.logging :as log]
-   [app.common.pages :as cp]
    [app.common.pages.changes-builder :as pcb]
    [app.common.pages.helpers :as cph]
    [app.common.spec :as us]
