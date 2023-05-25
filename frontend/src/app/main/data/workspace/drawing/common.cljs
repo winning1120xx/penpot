@@ -42,14 +42,16 @@
                  text?       (cph/text-shape? shape)
                  vbox        (dm/get-in state [:workspace-local :vbox])
 
-                 min-side    (min 100 mth/floor (:width vbox) (:height vbox))
+                 min-side    (mth/min 100
+                                      (mth/floor (dm/get-prop vbox :width))
+                                      (mth/floor (dm/get-prop vbox :height)))
 
                  shape
                  (cond-> shape
                    (not click-draw?)
                    (assoc :grow-type :fixed)
 
-                   (and click-draw? (not text?))
+                   (and ^boolean click-draw? (not ^boolean text?))
                    (-> (assoc :width min-side :height min-side)
                        (cts/setup-shape)
                        (gsh/transform-shape (ctm/move-modifiers (- (/ min-side 2)) (- (/ min-side 2)))))
