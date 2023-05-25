@@ -6,7 +6,6 @@
 
 (ns app.common.geom.align
   (:require
-   [app.common.data.macros :as dm]
    [app.common.geom.rect :as grc]
    [app.common.geom.shapes :as gsh]
    [app.common.pages.helpers :refer [get-children]]))

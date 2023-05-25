@@ -10,8 +10,8 @@
    [app.common.data :as d]
    [app.common.data.macros :as dm]
    [app.common.geom.point :as gpt]
-   [app.common.transit :as t]
-   [app.common.math :as mth]))
+   [app.common.math :as mth]
+   [app.common.transit :as t]))
 
 (defrecord Rect [x y width height x1 y1 x2 y2])
 

@@ -9,7 +9,7 @@
    [app.common.data :as d]
    [app.common.geom.rect :as grc]
    [app.common.geom.shapes :as gsh]
-   [app.common.geom.shapes.text :as gte]
+   [app.common.geom.shapes.text :as gst]
    [app.common.pages :as cp]
    [app.common.pages.helpers :as cph]
    [app.common.uuid :as uuid]
@@ -32,7 +32,7 @@
             (and ^boolean (cph/text-shape? shape)
                  ^boolean (some? (:position-data shape))
                  ^boolean (d/not-empty? (:position-data shape)))
-            (gte/position-data-bounding-box shape)
+            (gst/shape->bounds shape)
 
             :else
             (grc/points->rect (:points shape)))

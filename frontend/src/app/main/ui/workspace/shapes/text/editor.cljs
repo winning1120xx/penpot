@@ -10,7 +10,7 @@
    [app.common.data.macros :as dm]
    [app.common.geom.point :as gpt]
    [app.common.geom.shapes :as gsh]
-   [app.common.geom.shapes.text :as gsht]
+   [app.common.geom.shapes.text :as gst]
    [app.common.text :as txt]
    [app.common.math :as mth]
    [app.config :as cf]
@@ -289,15 +289,15 @@
                 (some? modifiers)
                 (gsh/transform-shape modifiers))
 
-        bounding-box (gsht/position-data-rect shape)
+        bounds (gst/shape->rect shape)
 
-        x      (mth/min (dm/get-prop bounding-box :x)
+        x      (mth/min (dm/get-prop bounds :x)
                         (dm/get-prop shape :x))
-        y      (mth/min (dm/get-prop bounding-box :y)
+        y      (mth/min (dm/get-prop bounds :y)
                         (dm/get-prop shape :y))
-        width  (mth/max (dm/get-prop bounding-box :width)
+        width  (mth/max (dm/get-prop bounds :width)
                         (dm/get-prop shape :width))
-        height (mth/max (dm/get-prop bounding-box :height)
+        height (mth/max (dm/get-prop bounds :height)
                         (dm/get-prop shape :height))]
 
     [:g.text-editor {:clip-path (dm/fmt "url(#%)" clip-id)

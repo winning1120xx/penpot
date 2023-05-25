@@ -62,9 +62,10 @@
   (let [x1 (dm/get-prop selrect :x1)
         y1 (dm/get-prop selrect :y1)
         x2 (dm/get-prop selrect :x2)
-        y2 (dm/get-prop selrect :y2)]
-    (let [[c1 c2] (transform-points [(gpt/point x1 y1) (gpt/point x2 y2)] matrix)]
-      (grc/corners->rect c1 c2))))
+        y2 (dm/get-prop selrect :y2)
+        [c1 c2] (transform-points [(gpt/point x1 y1) (gpt/point x2 y2)] matrix)]
+
+    (grc/corners->rect c1 c2)))
 
 (defn invalid-geometry?
   [{:keys [points selrect]}]

@@ -17,7 +17,6 @@
    [app.common.geom.shapes.intersect :as gsi]
    [app.common.geom.shapes.modifiers :as gsm]
    [app.common.geom.shapes.path :as gsp]
-   [app.common.geom.shapes.text :as gst]
    [app.common.geom.shapes.transforms :as gtr]
    [app.common.math :as mth]))
 

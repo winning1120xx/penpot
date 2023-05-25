@@ -7,10 +7,7 @@
 (ns app.common.geom.shapes.points
   (:require
    [app.common.data :as d]
-   [app.common.data.macros :as dm]
    [app.common.geom.point :as gpt]
-   [app.common.geom.rect :as grc]
-   [app.common.geom.shapes.common :as gco]
    [app.common.geom.shapes.intersect :as gsi]
    [app.common.math :as mth]))
 

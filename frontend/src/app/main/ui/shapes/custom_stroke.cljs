@@ -52,7 +52,7 @@
 
         selrect
         (if (cph/text-shape? shape)
-          (gst/position-data-rect shape)
+          (gst/shape->rect shape)
           (grc/points->rect (:points shape)))
 
         ;; FIXME: normalize rect update

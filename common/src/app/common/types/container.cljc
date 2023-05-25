@@ -7,9 +7,9 @@
 (ns app.common.types.container
   (:require
    [app.common.data.macros :as dm]
+   [app.common.files.helpers :as cfh]
    [app.common.geom.point :as gpt]
    [app.common.geom.shapes :as gsh]
-   [app.common.files.helpers :as cfh]
    [app.common.schema :as sm]
    [app.common.types.component :as ctk]
    [app.common.types.components-list :as ctkl]

@@ -9,7 +9,7 @@
    [app.common.data :as d]
    [app.common.data.macros :as dm]
    [app.common.geom.shapes :as gsh]
-   [app.common.geom.shapes.text :as gsht]
+   [app.common.geom.shapes.text :as gst]
    [app.common.math :as mth]
    [app.main.data.workspace.texts :as dwt]
    [app.main.refs :as refs]
@@ -24,7 +24,7 @@
   [props]
   (let [shape (unchecked-get props "shape")
         zoom (mf/deref refs/selected-zoom)
-        bounding-box (gsht/position-data-rect shape)
+        bounding-box (gst/shape->rect shape)
         ctx (js* "document.createElement(\"canvas\").getContext(\"2d\")")]
     [:g {:transform (gsh/transform-str shape)}
      [:rect {:x (:x bounding-box)

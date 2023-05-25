@@ -9,7 +9,6 @@
    [app.common.data :as d]
    [app.common.data.macros :as dm]
    [app.common.exceptions :as ex]
-   [app.common.geom.matrix :as gmt]
    [app.common.geom.point :as gpt]
    [app.common.geom.rect :as grc]
    [app.common.geom.shapes :as gsh]
@@ -46,25 +45,25 @@
 
                         (and add-container? (nil? component-id))
                         (assoc :page-id  (:current-page-id file)
-                               :frame-id (:current-frame-id file)))]
+                               :frame-id (:current-frame-id file)))
+         valid? (ch/valid-change? change)]
 
-     (let [valid? (ch/valid-change? change)]
-       (when-not valid?
-         (let [explain (sm/explain ::ch/change change)]
-           (pp/pprint (sm/humanize-data explain))
-           (if fail-on-spec?
-             (ex/raise :type :assertion
-                       :code :data-validation
-                       :hint "invalid change"
-                       ::sm/explain explain))))
+     (when-not valid?
+       (let [explain (sm/explain ::ch/change change)]
+         (pp/pprint (sm/humanize-data explain))
+         (when fail-on-spec?
+           (ex/raise :type :assertion
+                     :code :data-validation
+                     :hint "invalid change"
+                     ::sm/explain explain))))
 
-       (cond-> file
-         valid?
-         (-> (update :changes conjv change)
-             (update :data ch/process-changes [change] false))
+     (cond-> file
+       valid?
+       (-> (update :changes conjv change)
+           (update :data ch/process-changes [change] false))
 
-         (not valid?)
-         (update :errors conjv change))))))
+       (not valid?)
+       (update :errors conjv change)))))
 
 (defn- lookup-objects
   ([file]

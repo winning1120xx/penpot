@@ -9,14 +9,13 @@
    #?(:clj [app.common.fressian :as fres])
    [app.common.colors :as clr]
    [app.common.data :as d]
-   [app.common.data.macros :as dm]
-   [app.common.exceptions :as ex]
-   [app.common.geom.proportions :as gpr]
    [app.common.geom.matrix :as gmt]
    [app.common.geom.point :as gpt]
+   [app.common.geom.proportions :as gpr]
    [app.common.geom.rect :as grc]
    [app.common.geom.shapes :as gsh]
    [app.common.schema :as sm]
+   [app.common.transit :as t]
    [app.common.types.color :as ctc]
    [app.common.types.grid :as ctg]
    [app.common.types.shape.attrs :refer [default-color]]
@@ -28,7 +27,6 @@
    [app.common.types.shape.shadow :as ctss]
    [app.common.types.shape.text :as ctsx]
    [app.common.uuid :as uuid]
-   [app.common.transit :as t]
    [clojure.set :as set]))
 
 (defrecord Shape [id name type x y width height selrect points transform transform-inverse parent-id frame-id])

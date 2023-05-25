@@ -11,11 +11,11 @@
    [app.common.geom.shapes.common :as gco]
    [app.common.geom.shapes.transforms :as gtr]))
 
-(defn- position-data->rect
+(defn position-data->rect
   [{:keys [x y width height]}]
   (grc/make-rect x (- y height) width height))
 
-(defn- position-data-rect
+(defn shape->rect
   [shape]
   (let [points (->> (:position-data shape)
                     (mapcat (comp grc/rect->points position-data->rect)))]
@@ -23,7 +23,7 @@
       (grc/points->rect points)
       (dm/get-prop shape :selrect))))
 
-(defn position-data-bounding-box
+(defn shape->bounds
   [shape]
   (let [points (->> (:position-data shape)
                     (mapcat (comp grc/rect->points position-data->rect)))]

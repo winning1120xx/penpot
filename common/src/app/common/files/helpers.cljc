@@ -8,8 +8,7 @@
   (:require
    [app.common.data :as d]
    [app.common.data.macros :as dm]
-   [app.common.schema :as sm]
-   [app.common.uuid :as uuid]))
+   [app.common.schema :as sm]))
 
 (defn get-used-names
   "Return a set with the all unique names used in the
@@ -45,4 +44,3 @@
           (if (contains? used candidate)
             (recur (inc counter))
             candidate))))))
-
