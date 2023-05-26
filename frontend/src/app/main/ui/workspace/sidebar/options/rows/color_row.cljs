@@ -8,7 +8,6 @@
   (:require
    [app.common.data :as d]
    [app.common.data.macros :as dm]
-   [app.common.pages :as cp]
    [app.common.types.shape.attrs :refer [default-color]]
    [app.main.data.modal :as modal]
    [app.main.data.workspace.libraries :as dwl]

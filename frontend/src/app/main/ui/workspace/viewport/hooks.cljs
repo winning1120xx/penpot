@@ -10,7 +10,6 @@
    [app.common.data.macros :as dm]
    [app.common.geom.rect :as grc]
    [app.common.geom.shapes :as gsh]
-   [app.common.pages :as cp]
    [app.common.pages.focus :as cpf]
    [app.common.pages.helpers :as cph]
    [app.common.types.component :as ctk]

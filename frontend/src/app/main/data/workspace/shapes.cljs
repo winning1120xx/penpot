@@ -134,7 +134,7 @@
 
              components-v2 (features/active-feature? state :components-v2)
 
-             ids     (cph/clean-loops objects ids)
+             ids           (cph/clean-loops objects ids)
 
              in-component-copy?
              (fn [shape-id]

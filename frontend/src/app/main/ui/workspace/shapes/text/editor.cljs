@@ -11,8 +11,8 @@
    [app.common.geom.point :as gpt]
    [app.common.geom.shapes :as gsh]
    [app.common.geom.shapes.text :as gst]
-   [app.common.text :as txt]
    [app.common.math :as mth]
+   [app.common.text :as txt]
    [app.config :as cf]
    [app.main.data.workspace :as dw]
    [app.main.data.workspace.texts :as dwt]
@@ -25,9 +25,7 @@
    [app.util.object :as obj]
    [app.util.text-editor :as ted]
    [goog.events :as events]
-   [rumext.v2 :as mf])
-  (:import
-   goog.events.EventType))
+   [rumext.v2 :as mf]))
 
 ;; --- Text Editor Rendering
 
@@ -120,7 +118,7 @@
 
         on-mount
         (fn []
-          (let [keys [(events/listen js/document EventType.KEYUP on-key-up)]]
+          (let [keys [(events/listen js/document "keyup" on-key-up)]]
             (st/emit! (dwt/initialize-editor-state shape default-decorator)
                       (dwt/select-all shape))
             #(do

@@ -8,7 +8,6 @@
   (:require
    [app.common.colors :as clr]
    [app.common.data :as d]
-   [app.common.pages :as cp]
    [app.common.types.shape.attrs :refer [default-color]]
    [app.main.data.workspace.colors :as dc]
    [app.main.store :as st]

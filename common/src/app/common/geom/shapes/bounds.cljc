@@ -31,7 +31,7 @@
             :params item})))
    filters))
 
-(defn- shape->filters
+(defn shape->filters
   [shape]
   (d/concat-vec
    [{:id "BackgroundImageFix" :type :image-fix}]
@@ -62,7 +62,7 @@
         filter-h (+ h (mth/abs offset-y) (* spread 2) (* blur 2) 10)]
     (grc/make-rect filter-x filter-y filter-w filter-h)))
 
-(defn- get-rect-filter-bounds
+(defn get-rect-filter-bounds
   [selrect filters blur-value]
   (let [bounds-xf  (comp
                     (filter #(= :drop-shadow (:type %)))
@@ -79,7 +79,7 @@
         (update :width + (* delta-blur 2))
         (update :height + (* delta-blur 2)))))
 
-(defn- get-shape-filter-bounds
+(defn get-shape-filter-bounds
   [shape]
   (if (and (cph/svg-raw-shape? shape)
            (not= :svg (dm/get-in shape [:content :tag])))

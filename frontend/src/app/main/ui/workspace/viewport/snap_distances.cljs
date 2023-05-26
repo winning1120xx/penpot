@@ -8,8 +8,8 @@
   (:require
    [app.common.data :as d]
    [app.common.data.macros :as dm]
-   [app.common.geom.shapes :as gsh]
    [app.common.geom.rect :as grc]
+   [app.common.geom.shapes :as gsh]
    [app.common.math :as mth]
    [app.common.types.shape.layout :as ctl]
    [app.main.refs :as refs]
@@ -35,12 +35,12 @@
 (defn half-point
   "Calculates the middle point of the overlap between two selrects in the opposite axis"
   [coord sr1 sr2]
-  (let [c1 (max (get sr1 (if (= :x coord) :y1 :x1))
-                (get sr2 (if (= :x coord) :y1 :x1)))
-        c2 (min (get sr1 (if (= :x coord) :y2 :x2))
-                (get sr2 (if (= :x coord) :y2 :x2)))
-        half-point (+ c1 (/ (- c2 c1) 2))]
-    half-point))
+  (let [c1 (mth/max (get sr1 (if (= :x coord) :y1 :x1))
+                    (get sr2 (if (= :x coord) :y1 :x1)))
+        c2 (mth/min (get sr1 (if (= :x coord) :y2 :x2))
+                    (get sr2 (if (= :x coord) :y2 :x2)))]
+
+    (+ c1 (/ (- c2 c1) 2))))
 
 (def pill-text-width-letter 6)
 (def pill-text-width-margin 6)
@@ -52,10 +52,10 @@
 (mf/defc shape-distance-segment
   "Displays a segment between two selrects with the distance between them"
   [{:keys [sr1 sr2 coord zoom]}]
-  (let [from-c (min (get sr1 (if (= :x coord) :x2 :y2))
-                    (get sr2 (if (= :x coord) :x2 :y2)))
-        to-c   (max (get sr1 (if (= :x coord) :x1 :y1))
-                    (get sr2 (if (= :x coord) :x1 :y1)))
+  (let [from-c (mth/min (get sr1 (if (= :x coord) :x2 :y2))
+                        (get sr2 (if (= :x coord) :x2 :y2)))
+        to-c   (mth/max (get sr1 (if (= :x coord) :x1 :y1))
+                        (get sr2 (if (= :x coord) :x1 :y1)))
 
         distance (- to-c from-c)
         distance-str (fmt/format-number distance)

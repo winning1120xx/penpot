@@ -20,7 +20,6 @@
    [app.common.spec :as us :refer [max-safe-int min-safe-int]]
    [app.common.types.shape :as cts]
    [app.common.types.shape-tree :as ctst]
-   [app.common.uuid :as uuid]
    [app.main.data.workspace.changes :as dch]
    [app.main.data.workspace.selection :as dws]
    [app.main.data.workspace.state-helpers :as wsh]
@@ -282,7 +281,7 @@
   {:x (d/parse-double x 0)
    :y (d/parse-double y 0)
    :width (d/parse-double width 1)
-   :height (d/parse-double width 1)})
+   :height (d/parse-double height 1)})
 
 (defn create-rect-shape [name frame-id svg-data {:keys [attrs] :as data}]
   (let [transform (->> (usvg/parse-transform (:transform attrs))
