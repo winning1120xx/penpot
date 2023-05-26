@@ -30,12 +30,11 @@
    [beicon.core :as rx]
    [potok.core :as ptk]))
 
+(def valid-shape-map?
+  (sm/pred-fn ::cts/shape))
+
 (defn prepare-add-shape
   [changes shape objects _selected]
-  ;; FIXME: validate
-  ;; (prn "add-shape")
-  ;; (app.common.pprint/pprint shape)
-
   (let [;; WTF: index again? revisit please
         index   (:index (meta shape))
 
@@ -56,7 +55,11 @@
   ([shape]
    (add-shape shape {}))
   ([shape {:keys [no-select? no-update-layout?]}]
-   (dm/assert! (cts/valid-shape-attrs? shape))
+
+   (dm/verify!
+    "expected a valid shape"
+    (cts/valid-shape? shape))
+
    (ptk/reify ::add-shape
      ptk/WatchEvent
      (watch [it state _]

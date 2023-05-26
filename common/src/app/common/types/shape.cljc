@@ -35,19 +35,6 @@
   [o]
   (instance? Shape o))
 
-(t/add-handlers!
- {:id "shape"
-  :class Shape
-  :wfn #(into {} %)
-  :rfn map->Shape})
-
-#?(:clj
-   (fres/add-handlers!
-    {:name "penpot/shape"
-     :class Shape
-     :wfn fres/write-map-like
-     :rfn (comp map->Shape fres/read-map-like)}))
-
 (def stroke-caps-line #{:round :square})
 (def stroke-caps-marker #{:line-arrow :triangle-arrow :square-marker :circle-marker :diamond-marker})
 (def stroke-caps (set/union stroke-caps-line stroke-caps-marker))
@@ -118,6 +105,23 @@
     [::sm/one-of stroke-caps]]
    [:stroke-color-gradient {:optional true} ::ctc/gradient]])
 
+(sm/def! ::minimal-shape-attrs
+  [:map {:title "ShapeMinimalRecord"}
+   [:id {:optional false} ::sm/uuid]
+   [:name {:optional false} :string]
+   [:type {:optional false} :keyword]
+   [:x {:optional false} [:maybe ::sm/safe-number]]
+   [:y {:optional false} [:maybe ::sm/safe-number]]
+   [:width {:optional false} [:maybe ::sm/safe-number]]
+   [:height {:optional false} [:maybe ::sm/safe-number]]
+   [:selrect {:optional false}
+    [:and ::selrect [:fn grc/rect?]]]
+   [:points {:optional false} [:vector ::gpt/point]]
+   [:transform {:optional false} ::gmt/matrix]
+   [:transform-inverse {:optional false} ::gmt/matrix]
+   [:parent-id {:optional false} ::sm/uuid]
+   [:frame-id {:optional false} ::sm/uuid]])
+
 (sm/def! ::shape-attrs
   [:map {:title "ShapeAttrs"}
    [:name {:optional true} :string]
@@ -174,18 +178,16 @@
 (def valid-shape-attrs?
   (sm/pred-fn ::shape-attrs))
 
+
 (sm/def! ::group-attrs
   [:map {:title "GroupAttrs"}
    [:type [:= :group]]
-   [:id ::sm/uuid]
    [:shapes [:vector {:min 1 :gen/max 10 :gen/min 1} ::sm/uuid]]])
 
 (sm/def! ::frame-attrs
   [:map {:title "FrameAttrs"}
    [:type [:= :frame]]
-   [:id ::sm/uuid]
-   [:shapes {:optional true} [:vector {:gen/max 10 :gen/min 1} ::sm/uuid]]
-   [:file-thumbnail {:optional true} :boolean]
+   [:shapes [:vector {:gen/max 10 :gen/min 1} ::sm/uuid]]
    [:hide-fill-on-export {:optional true} :boolean]
    [:show-content {:optional true} :boolean]
    [:hide-in-viewer {:optional true} :boolean]])
@@ -193,7 +195,6 @@
 (sm/def! ::bool-attrs
   [:map {:title "BoolAttrs"}
    [:type [:= :bool]]
-   [:id ::sm/uuid]
    [:shapes [:vector {:min 1 :gen/max 10 :gen/min 1} ::sm/uuid]]
 
    ;; FIXME: improve this schema
@@ -209,23 +210,19 @@
 
 (sm/def! ::rect-attrs
   [:map {:title "RectAttrs"}
-   [:type [:= :rect]]
-   [:id ::sm/uuid]])
+   [:type [:= :rect]]])
 
 (sm/def! ::circle-attrs
   [:map {:title "CircleAttrs"}
-   [:type [:= :circle]]
-   [:id ::sm/uuid]])
+   [:type [:= :circle]]])
 
 (sm/def! ::svg-raw-attrs
   [:map {:title "SvgRawAttrs"}
-   [:type [:= :svg-raw]]
-   [:id ::sm/uuid]])
+   [:type [:= :svg-raw]]])
 
 (sm/def! ::image-attrs
   [:map {:title "ImageAttrs"}
    [:type [:= :image]]
-   [:id ::sm/uuid]
    [:metadata
     [:map
      [:width :int]
@@ -236,7 +233,6 @@
 (sm/def! ::path-attrs
   [:map {:title "PathAttrs"}
    [:type [:= :path]]
-   [:id ::sm/uuid]
    [:content
     [:vector
      [:map
@@ -245,62 +241,72 @@
 
 (sm/def! ::text-attrs
   [:map {:title "TextAttrs"}
-   [:id ::sm/uuid]
    [:type [:= :text]]
    [:content ::ctsx/content]])
 
 (sm/def! ::shape
-  [:multi {:dispatch :type :title "Shape"}
-   [:group
-    [:merge {:title "GroupShape"}
-     ::shape-attrs
-     ::group-attrs]]
+  [:and
+   [:fn shape?]
+   [:multi {:dispatch :type :title "Shape"}
+    [:group
+     [:merge {:title "GroupShape"}
+      ::shape-attrs
+      ::minimal-shape-attrs
+      ::group-attrs]]
 
-   [:frame
-    [:merge {:title "FrameShape"}
-     ::shape-attrs
-     ::frame-attrs]]
+    [:frame
+     [:merge {:title "FrameShape"}
+      ::shape-attrs
+      ::minimal-shape-attrs
+      ::frame-attrs]]
 
-   [:bool
-    [:merge {:title "BoolShape"}
-     ::shape-attrs
-     ::bool-attrs]]
+    [:bool
+     [:merge {:title "BoolShape"}
+      ::shape-attrs
+      ::minimal-shape-attrs
+      ::bool-attrs]]
 
-   [:rect
-    [:merge {:title "RectShape"}
-     ::shape-attrs
-     ::rect-attrs]]
+    [:rect
+     [:merge {:title "RectShape"}
+      ::shape-attrs
+      ::minimal-shape-attrs
+      ::rect-attrs]]
 
-   [:circle
-    [:merge {:title "CircleShape"}
-     ::shape-attrs
-     ::circle-attrs]]
+    [:circle
+     [:merge {:title "CircleShape"}
+      ::shape-attrs
+      ::minimal-shape-attrs
+      ::circle-attrs]]
 
-   [:image
-    [:merge {:title "ImageShape"}
-     ::shape-attrs
-     ::image-attrs]]
+    [:image
+     [:merge {:title "ImageShape"}
+      ::shape-attrs
+      ::minimal-shape-attrs
+      ::image-attrs]]
 
-   [:svg-raw
-    [:merge {:title "SvgRawShape"}
-     ::shape-attrs
-     ::svg-raw-attrs]]
+    [:svg-raw
+     [:merge {:title "SvgRawShape"}
+      ::shape-attrs
+      ::minimal-shape-attrs
+      ::svg-raw-attrs]]
 
-   [:path
-    [:merge {:title "PathShape"}
-     ::shape-attrs
-     ::path-attrs]]
+    [:path
+     [:merge {:title "PathShape"}
+      ::shape-attrs
+      ::minimal-shape-attrs
+      ::path-attrs]]
 
-   [:text
-    [:merge {:title "TextShape"}
-     ::shape-attrs
-     ::text-attrs]]
-   ])
+    [:text
+     [:merge {:title "TextShape"}
+      ::shape-attrs
+      ::minimal-shape-attrs
+      ::text-attrs]]
+    ]])
+
+(def valid-shape?
+  (sm/pred-fn ::shape))
 
 ;; --- Initialization
-
-(def default-shape-attrs
-  {})
 
 (def ^:private minimal-rect-attrs
   {:type :rect
@@ -344,7 +350,6 @@
    :name "Bool"
    :shapes []})
 
-;; FIXME: revisit
 (def ^:private minimal-text-attrs
   {:type :text
    :name "Text"})
@@ -442,3 +447,20 @@
         (cond-> (nil? (:transform-inverse shape))
           (assoc :transform-inverse (gmt/matrix)))
         (gpr/setup-proportions))))
+
+;; --- SHAPE SERIALIZATION
+
+(t/add-handlers!
+ {:id "shape"
+  :class Shape
+  :wfn #(into {} %)
+  :rfn map->Shape})
+
+#?(:clj
+   (fres/add-handlers!
+    {:name "penpot/shape"
+     :class Shape
+     :wfn fres/write-map-like
+     :rfn (comp map->Shape fres/read-map-like)}))
+
+
