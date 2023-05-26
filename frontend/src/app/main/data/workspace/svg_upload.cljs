@@ -34,9 +34,8 @@
    [cuerdas.core :as str]
    [potok.core :as ptk]))
 
-(defonce default-rect {:x 0 :y 0 :width 1 :height 1 :rx 0 :ry 0})
-(defonce default-circle {:r 0 :cx 0 :cy 0})
-(defonce default-image {:x 0 :y 0 :width 1 :height 1 :rx 0 :ry 0})
+(def default-rect
+  {:x 0 :y 0 :width 1 :height 1})
 
 (defn- assert-valid-num [attr num]
   (dm/assert!
@@ -262,10 +261,9 @@
             :svg-transform svg-transform})
           (gsh/translate-to-frame origin)))))
 
-;; FIXME: TODO
-
 (defn calculate-rect-metadata [rect-data transform]
-  (let [points (-> (grc/rect->points rect-data)
+  (let [points (-> (grc/make-rect rect-data)
+                   (grc/rect->points)
                    (gsh/transform-points transform))
 
         [selrect transform transform-inverse] (gsh/calculate-geometry points)]
@@ -279,101 +277,94 @@
      :transform transform
      :transform-inverse transform-inverse}))
 
+(defn- parse-rect-attrs
+  [{:keys [x y width height]}]
+  {:x (d/parse-double x 0)
+   :y (d/parse-double y 0)
+   :width (d/parse-double width 1)
+   :height (d/parse-double width 1)})
 
 (defn create-rect-shape [name frame-id svg-data {:keys [attrs] :as data}]
-  (let [svg-transform (usvg/parse-transform (:transform attrs))
-        transform (->> svg-transform
+  (let [transform (->> (usvg/parse-transform (:transform attrs))
                        (gmt/transform-in (gpt/point svg-data)))
 
-        rect (->> (select-keys attrs [:x :y :width :height])
-                  (d/mapm #(d/parse-double %2)))
+        origin    (gpt/negate (gpt/point svg-data))
 
-        origin (gpt/negate (gpt/point svg-data))
-
-        rect-data (-> (merge default-rect rect)
+        rect-data (-> (parse-rect-attrs attrs)
                       (update :x - (:x origin))
-                      (update :y - (:y origin)))
-
-        metadata (calculate-rect-metadata rect-data transform)]
-    (-> {:id (uuid/next)
-         :type :rect
-         :name name
-         :frame-id frame-id}
-        (cond->
-            (contains? attrs :rx) (assoc :rx (d/parse-double (:rx attrs 0)))
-            (contains? attrs :ry) (assoc :ry (d/parse-double (:ry attrs 0))))
-
-        (merge metadata)
-        (assoc :svg-viewbox (select-keys rect [:x :y :width :height]))
-        (assoc :svg-attrs (dissoc attrs :x :y :width :height :rx :ry :transform)))))
-
-
-(defn create-circle-shape [name frame-id svg-data {:keys [attrs] :as data}]
-  (let [svg-transform (usvg/parse-transform (:transform attrs))
-        transform (->> svg-transform
-                       (gmt/transform-in (gpt/point svg-data)))
-
-        circle (->> (select-keys attrs [:r :ry :rx :cx :cy])
-                    (d/mapm #(d/parse-double %2)))
-
-        {:keys [cx cy]} circle
-
-        rx (or (:r circle) (:rx circle))
-        ry (or (:r circle) (:ry circle))
-
-        rect {:x (- cx rx)
-              :y (- cy ry)
-              :width (* 2 rx)
-              :height (* 2 ry)}
-
-        origin (gpt/negate (gpt/point svg-data))
-
-        rect-data (-> rect
-                      (update :x - (:x origin))
-                      (update :y - (:y origin)))
-
-        metadata (calculate-rect-metadata rect-data transform)]
+                      (update :y - (:y origin)))]
 
     (cts/setup-shape
-     (-> metadata
+     (-> (calculate-rect-metadata rect-data transform)
+         (assoc :type :rect)
+         (assoc :name name)
+         (assoc :frame-id frame-id)
+         (assoc :svg-viewbox (select-keys rect-data [:x :y :width :height]))
+         (assoc :svg-attrs (dissoc attrs :x :y :width :height :rx :ry :transform))
+         (cond-> (contains? attrs :rx)
+           (assoc :rx (d/parse-double (:rx attrs) 0)))
+         (cond-> (contains? attrs :ry)
+           (assoc :ry (d/parse-double (:ry attrs) 0)))))))
+
+
+(defn- parse-circle-attrs
+  [attrs]
+  (into [] (comp (map (d/getf attrs))
+                 (map d/parse-double))
+        [:cx :cy :r :rx :ry]))
+
+(defn create-circle-shape [name frame-id svg-data {:keys [attrs] :as data}]
+  (let [[cx cy r rx ry]
+        (parse-circle-attrs attrs)
+
+        transform (->> (usvg/parse-transform (:transform attrs))
+                       (gmt/transform-in (gpt/point svg-data)))
+
+        rx        (or r rx)
+        ry        (or r ry)
+        origin    (gpt/negate (gpt/point svg-data))
+
+        rect-data {:x (- cx rx (:x origin))
+                   :y (- cy ry (:y origin))
+                   :width (* 2 rx)
+                   :height (* 2 ry)}]
+
+    (cts/setup-shape
+     (-> (calculate-rect-metadata rect-data transform)
          (assoc :type :circle)
          (assoc :name name)
          (assoc :frame-id frame-id)
-         (assoc :svg-viewbox (select-keys rect [:x :y :width :height]))
+         (assoc :svg-viewbox rect-data)
          (assoc :svg-attrs (dissoc attrs :cx :cy :r :rx :ry :transform))))))
 
 (defn create-image-shape [name frame-id svg-data {:keys [attrs] :as data}]
-  (let [svg-transform (usvg/parse-transform (:transform attrs))
-        transform (->> svg-transform
-                       (gmt/transform-in (gpt/point svg-data)))
+  (let [transform  (->> (usvg/parse-transform (:transform attrs))
+                        (gmt/transform-in (gpt/point svg-data)))
 
-        image-url (or (:href attrs) (:xlink:href attrs))
+        image-url  (or (:href attrs) (:xlink:href attrs))
         image-data (dm/get-in svg-data [:image-data image-url])
 
-        rect (->> (select-keys attrs [:x :y :width :height])
-                  (d/mapm #(d/parse-double %2)))
 
-        origin (gpt/negate (gpt/point svg-data))
+        metadata   {:width (:width image-data)
+                    :height (:height image-data)
+                    :mtype (:mtype image-data)
+                    :id (:id image-data)}
 
-        rect-data (-> (merge default-image rect)
-                      (update :x - (:x origin))
-                      (update :y - (:y origin)))
-
-        rect-metadata (calculate-rect-metadata rect-data transform)]
+        origin     (gpt/negate (gpt/point svg-data))
+        rect-data  (-> (parse-rect-attrs attrs)
+                       (update :x - (:x origin))
+                       (update :y - (:y origin)))]
 
     (when (some? image-data)
-      (-> {:id (uuid/next)
-           :type :image
-           :name name
-           :frame-id frame-id
-           :metadata {:width (:width image-data)
-                      :height (:height image-data)
-                      :mtype (:mtype image-data)
-                      :id (:id image-data)}}
+      (cts/setup-shape
+       (-> (calculate-rect-metadata rect-data transform)
+           (assoc :type :image)
+           (assoc :name name)
+           (assoc :frame-id frame-id)
+           (assoc :metadata metadata)
+           (assoc :svg-viewbox (select-keys rect-data [:x :y :width :height]))
+           (assoc :svg-attrs (dissoc attrs :x :y :width :height :href :xlink:href)))))))
 
-          (merge rect-metadata)
-          (assoc :svg-viewbox (select-keys rect [:x :y :width :height]))
-          (assoc :svg-attrs (dissoc attrs :x :y :width :height :href :xlink:href))))))
 
 (defn parse-svg-element [frame-id svg-data {:keys [tag attrs hidden] :as element-data} unames]
   (let [attrs        (usvg/format-styles attrs)
@@ -415,44 +406,17 @@
                         #_other      (create-raw-svg name frame-id svg-data element-data)))]
         (when (some? shape)
           (let [shape (-> shape
-                          (assoc :fills [])
-                          (assoc :strokes [])
                           (assoc :svg-defs (select-keys (:defs svg-data) references))
                           (setup-fill)
                           (setup-stroke)
-                          (setup-opacity))
+                          (setup-opacity))]
 
-                shape (cond-> shape
-                        hidden (assoc :hidden true))
+            [(cond-> shape
+               hidden (assoc :hidden true))
 
-                children (cond->> (:content element-data)
-                           (contains? usvg/parent-tags tag)
-                           (mapv #(usvg/inherit-attributes attrs %)))]
-            [shape children]))))))
-
-
-;; (defn make-new-shape
-;;   [attrs objects selected]
-;;   (let
-
-;;   (let [default-attrs (if (= :frame (:type attrs))
-;;                         cts/default-frame-attrs
-;;                         cts/default-shape-attrs)
-
-;;         selected-non-frames
-;;         (into #{} (comp (map (d/getf objects))
-;;                         (remove cph/frame-shape?))
-;;               selected)
-
-;;         [frame-id parent-id index]
-;;         (get-shape-layer-position objects selected-non-frames attrs)]
-
-;;     (-> (merge default-attrs attrs)
-;;         (gpp/setup-proportions)
-;;         (assoc :frame-id frame-id
-;;                :parent-id parent-id
-;;                :index index))))
-
+             (cond->> (:content element-data)
+               (contains? usvg/parent-tags tag)
+               (mapv #(usvg/inherit-attributes attrs %)))]))))))
 
 
 (defn create-svg-children
@@ -460,11 +424,9 @@
   (let [[shape new-children] (parse-svg-element frame-id svg-data svg-element unames)]
     (if (some? shape)
       (let [shape-id (:id shape)
-            shape (-> shape
-                      (assoc :frame-id frame-id)
-                      (assoc :parent-id parent-id))
-
-
+            shape    (-> shape
+                         (assoc :frame-id frame-id)
+                         (assoc :parent-id parent-id))
             children (conj children shape)
             unames   (conj unames (:name shape))]
 
@@ -634,7 +596,7 @@
                  (ptk/data-event :layout/update [(:id new-shape)])
                  (dwu/commit-undo-transaction undo-id)))
 
-        (catch :default e
-          (.error js/console "Error SVG" e)
+        (catch :default cause
+          (js/console.log (.-stack cause))
           (rx/throw {:type :svg-parser
-                     :data e}))))))
+                     :data cause}))))))

@@ -216,6 +216,9 @@
    (add-object changes obj nil))
 
   ([changes obj {:keys [index ignore-touched] :or {index ::undefined ignore-touched false}}]
+
+   ;; FIXME: add shape validation
+
    (assert-page-id changes)
    (let [obj (cond-> obj
                (not= index ::undefined)

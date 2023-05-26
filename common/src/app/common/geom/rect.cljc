@@ -36,10 +36,13 @@
   ([data]
    (if (rect? data)
      data
-     (map->Rect data)))
+     (let [{:keys [x y width height]} data]
+       (make-rect (d/nilv x 0)
+                  (d/nilv y 0)
+                  (d/nilv width 0.01)
+                  (d/nilv height 0.01)))))
 
   ([p1 p2]
-
    (dm/assert!
     "expected `p1` and `p2` to be points"
     (and (gpt/point? p1)
