@@ -85,6 +85,8 @@
 (def default-language "en")
 
 (def worker-uri           (obj/get global "penpotWorkerURI" "/js/worker.js"))
+(def thumbnail-renderer-origin (obj/get global "penpotThumbnailRendererURI" "http://localhost:3449"))
+(def parent-origin        (obj/get global "penpotParentOrigin" "http://localhost:3449"))
 (def translations         (obj/get global "penpotTranslations"))
 (def themes               (obj/get global "penpotThemes"))
 

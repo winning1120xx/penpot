@@ -15,6 +15,7 @@
    [app.main.errors]
    [app.main.features :as feat]
    [app.main.store :as st]
+   [app.main.thumbnail-renderer :as tr]
    [app.main.ui :as ui]
    [app.main.ui.alert]
    [app.main.ui.confirm]
@@ -78,6 +79,7 @@
   (worker/init!)
   (i18n/init! cf/translations)
   (theme/init! cf/themes)
+  (tr/init!)
   (init-ui)
   (st/emit! (initialize)))
 

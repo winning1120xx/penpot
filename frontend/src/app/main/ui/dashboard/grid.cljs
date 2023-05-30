@@ -17,6 +17,7 @@
    [app.main.refs :as refs]
    [app.main.render :refer [component-svg]]
    [app.main.store :as st]
+   [app.main.thumbnail-renderer :as thr]
    [app.main.ui.components.color-bullet :as bc]
    [app.main.ui.dashboard.file-menu :refer [file-menu]]
    [app.main.ui.dashboard.import :refer [use-import-file]]
@@ -30,9 +31,9 @@
    [app.util.dom.dnd :as dnd]
    [app.util.i18n :as i18n :refer [tr]]
    [app.util.keyboard :as kbd]
-   [app.util.perf :as perf]
    [app.util.time :as dt]
    [app.util.timers :as ts]
+   [app.util.webapi :as wapi]
    [beicon.core :as rx]
    [cuerdas.core :as str]
    [rumext.v2 :as mf]))
@@ -47,12 +48,17 @@
   (let [features (cond-> ffeat/enabled
                    (features/active-feature? :components-v2)
                    (conj "components/v2"))]
-
     (wrk/ask! {:cmd :thumbnails/generate-for-file
                :revn (:revn file)
                :file-id (:id file)
                :file-name (:name file)
                :features features})))
+
+(defn ask-for-thumbnail-to-thumbnail-renderer
+  "Creates some hooks to handle the files thumbnails cache"
+  [file]
+  (->> (ask-for-thumbnail file)
+       (rx/flat-map #(thr/render! %))))
 
 (mf/defc grid-item-thumbnail
   {::mf/wrap [mf/memo]}
@@ -63,15 +69,13 @@
 
     (mf/with-effect [file visible?]
       (when visible?
-        (let [tp (perf/tpoint)]
-          (->> (ask-for-thumbnail file)
-               (rx/subscribe-on :af)
-               (rx/subs (fn [{:keys [data fonts] :as params}]
-                          (run! fonts/ensure-loaded! fonts)
-                          (log/debug :hint "loaded thumbnail"
-                                     :file-id (dm/str (:id file))
-                                     :file-name (:name file)
-                                     :elapsed (str/ffmt "%ms" (tp)))
+        (->> (ask-for-thumbnail-to-thumbnail-renderer file)
+             (rx/subscribe-on :af)
+             (rx/subs (fn [^js payload]
+                        ;; FIXME: Aquí tenemos el ArrayBuffer con la imagen
+                        ;; y deberíamos poder enviarla directamente al backend.
+                        (let [uri (wapi/create-uri (wapi/create-blob payload "image/png"))
+                              data (dm/str "<img class=\"grid-item-thumbnail-image\" src=\"" uri "\">")]
                           (when-let [node (mf/ref-val container)]
                             (dom/set-html! node data))))))))
 
