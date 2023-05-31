@@ -205,7 +205,9 @@
                   (d/ordered-set)
                   (ctt/sort-z-index objects ids {:bottom-frames? mod?}))
 
-             grouped? (fn [id] (contains? #{:group :bool} (get-in objects [id :type])))
+             grouped? (fn [id]
+                        (and (cph/group-shape? objects id)
+                             (not (cph/mask-shape? objects id))))
 
              selected-with-parents
              (into #{} (mapcat #(cph/get-parent-ids objects %)) selected)
