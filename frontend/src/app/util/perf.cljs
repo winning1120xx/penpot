@@ -131,7 +131,9 @@
     (js/performance.measure end-mark name)
 
     (when (fn? chk-fn)
-      (chk-fn @blackhole))
+      (when-not (chk-fn @blackhole)
+        (println "--> EE: failed chk-fn")))
+
 
     (let [[result] (js/performance.getEntriesByName end-mark)
           duration (mth/precision (.-duration ^js result) 4)

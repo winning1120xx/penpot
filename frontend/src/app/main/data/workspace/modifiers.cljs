@@ -346,7 +346,15 @@
      (update [_ state]
        (assoc state :workspace-modifiers (calculate-modifiers state ignore-constraints ignore-snap-pixel modif-tree params))))))
 
-;; Rotation use different algorithm to calculate children modifiers (and do not use child constraints).
+(def ^:private
+  xf-rotation-shape
+  (comp
+   (remove #(get % :blocked false))
+   (filter #(:rotation (get editable-attrs (:type %))))
+   (map :id)))
+
+;; Rotation use different algorithm to calculate children
+;; modifiers (and do not use child constraints).
 (defn set-rotation-modifiers
   ([angle shapes]
    (set-rotation-modifiers angle shapes (-> shapes gsh/shapes->rect grc/rect->center)))
@@ -356,11 +364,7 @@
      ptk/UpdateEvent
      (update [_ state]
        (let [objects (wsh/lookup-page-objects state)
-             ids
-             (->> shapes
-                  (remove #(get % :blocked false))
-                  (filter #(:rotation (get editable-attrs (:type %))))
-                  (map :id))
+             ids     (sequence xf-rotation-shape shapes)
 
              get-modifier
              (fn [shape]

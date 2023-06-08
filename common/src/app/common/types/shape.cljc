@@ -14,6 +14,7 @@
    [app.common.geom.proportions :as gpr]
    [app.common.geom.rect :as grc]
    [app.common.geom.shapes :as gsh]
+   [app.common.record :as cr]
    [app.common.schema :as sm]
    [app.common.schema.generators :as sg]
    [app.common.transit :as t]
@@ -30,7 +31,7 @@
    [app.common.uuid :as uuid]
    [clojure.set :as set]))
 
-(defrecord Shape [id name type x y width height selrect points transform transform-inverse parent-id frame-id])
+(cr/defrecord Shape [id name type x y width height rotation selrect points transform transform-inverse parent-id frame-id])
 
 (defn shape?
   [o]
@@ -425,7 +426,8 @@
           (assoc :height 0.01))
 
       :always
-      (assoc :id (uuid/next))
+      (assoc :id (uuid/next)
+             :rotation 0)
 
       :always
       (map->Shape))))
@@ -460,7 +462,6 @@
   [{:keys [type] :as props}]
   (let [shape (make-minimal-shape type)
         shape (merge shape (d/without-nils props))
-        shape (map->Shape shape)
         shape (case (:type shape)
                 :path  (setup-path shape)
                 :image (-> shape setup-rect setup-image)
