@@ -5,11 +5,13 @@
 ;; Copyright (c) KALEIDOS INC
 
 (ns app.main.ui.workspace.sidebar.history
+  (:require-macros [app.main.style :refer [css]])
   (:require
    [app.common.data :as d]
    [app.main.data.workspace.common :as dwc]
    [app.main.refs :as refs]
    [app.main.store :as st]
+   [app.main.ui.context :as ctx]
    [app.main.ui.icons :as i]
    [app.util.dom :as dom]
    [app.util.i18n :refer [t] :as i18n]
@@ -304,9 +306,29 @@
 
 (mf/defc history-toolbox []
   (let [locale (mf/deref i18n/locale)
+        new-css-system (mf/use-ctx ctx/new-css-system)
         objects (mf/deref refs/workspace-page-objects)
         {:keys [items index]} (mf/deref workspace-undo)
         entries (parse-entries items objects)]
+    (if new-css-system
+    [:div {:class (css :history-toolbox)}
+     [:div {:class (css :history-toolbox-title)}
+      [:span (t locale "workspace.undo.title")]
+      [:div {:class (css :close-button)}
+       i/close-refactor]]
+     (if (empty? entries)
+       [:div {:class (css :history-entry-empty)}
+        [:div {:class (css :history-entry-empty-icon)} i/recent]
+        [:div {:class (css :history-entry-empty-msg)} (t locale "workspace.undo.empty")]]
+       [:ul {:class (css :history-entries)}
+        (for [[idx-entry entry] (->> entries (map-indexed vector) reverse)] #_[i (range 0 10)]
+             [:& history-entry {:key (str "entry-" idx-entry)
+                                :locale locale
+                                :entry entry
+                                :idx-entry idx-entry
+                                :current? (= idx-entry index)
+                                :disabled? (> idx-entry index)}])])]
+      
     [:div.history-toolbox
      [:div.history-toolbox-title (t locale "workspace.undo.title")]
      (if (empty? entries)
@@ -320,5 +342,7 @@
                                 :entry entry
                                 :idx-entry idx-entry
                                 :current? (= idx-entry index)
-                                :disabled? (> idx-entry index)}])])]))
+                                :disabled? (> idx-entry index)}])])]
+      
+      )))
 
