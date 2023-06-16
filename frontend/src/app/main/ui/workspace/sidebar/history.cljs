@@ -321,7 +321,7 @@
         [:div {:class (css :history-entry-empty-icon)} i/recent]
         [:div {:class (css :history-entry-empty-msg)} (t locale "workspace.undo.empty")]]
        [:ul {:class (css :history-entries)}
-        (for [[idx-entry entry] (->> entries (map-indexed vector) reverse)] #_[i (range 0 10)]
+        (for [[idx-entry entry] (->> entries (map-indexed vector)reverse)] #_[i (range 0 10)]
              [:& history-entry {:key (str "entry-" idx-entry)
                                 :locale locale
                                 :entry entry

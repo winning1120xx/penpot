@@ -39,4 +39,33 @@
         }
       }
     }
+
+  .history-entry-empty {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: $s-28 $s-16;
+    text-align: center;
+    gap: $s-16;
+
+    .history-entry-empty-icon {
+      @include flexCenter;
+      background-color: var(--color-background-primary);
+      border-radius: 50%;
+      height: 48px;
+      width: 48px;
+      svg {
+        fill: var(--color-foreground-secondary);
+        height: 28px;
+        width: 28px;
+        margin-left: -2px;
+      }
+    }
+    
+    .history-entry-empty-msg {
+      @include titleTipography;
+      color: var(--title-foreground-secondary);
+    }
+  }
 }
