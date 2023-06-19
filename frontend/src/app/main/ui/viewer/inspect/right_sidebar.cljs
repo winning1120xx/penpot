@@ -36,13 +36,13 @@
                      :data local})))))
 
 (mf/defc right-sidebar
-  [{:keys [frame page file selected shapes page-id file-id from
+  [{:keys [frame page objects file selected shapes page-id file-id from
            on-change-section on-expand]
     :or {from :inspect}}]
   (let [section       (mf/use-state :info #_:code)
+        objects       (or objects (:objects page))
         shapes        (or shapes
-                          (resolve-shapes (:objects page) selected))
-
+                          (resolve-shapes objects selected))
         first-shape   (first shapes)
         page-id       (or page-id (:id page))
         file-id       (or file-id (:id file))
@@ -99,6 +99,7 @@
                               :selected @section}
            [:& tabs-element {:id :info :title (tr "inspect.tabs.info")}
             [:& attributes {:page-id page-id
+                            :objects objects
                             :file-id file-id
                             :frame frame
                             :shapes shapes
