@@ -262,20 +262,20 @@
         objects (mf/deref refs/workspace-page-objects)]
 
    (if new-css-system
-    [:div.history-entry-detail
+    [:div {:class (css :history-entry-detail)}
      (case (:operation entry)
        :new
        (:name (get-object (:detail entry) entries objects))
 
        :delete
-       [:ul.history-entry-details-list
+       [:ul {:class (css :ul.history-entry-details-list)}
         (for [id (:detail entry)]
           (let [shape-name (:name (get-object id entries objects))]
             [:li {:key id} shape-name]))]
 
 
        :modify
-       [:ul.history-entry-details-list
+       [:ul {:class (css :ul.history-entry-details-list)}
         (for [[id attributes] (:detail entry)]
           (let [shape-name (:name (get-object id entries objects))]
             [:li {:key id}
@@ -315,6 +315,7 @@
      [:div {:class (dom/classnames (css :history-entry) true
                                    (css :disabled) disabled?
                                    (css :current) current?
+                                   (css :hover @hover?)
                                    (css :show-detail) @show-detail?)
                    :on-pointer-enter #(reset! hover? true)
                           :on-pointer-leave #(reset! hover? false)

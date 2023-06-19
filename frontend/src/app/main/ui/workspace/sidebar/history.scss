@@ -94,6 +94,7 @@
         background-color: var(--color-background-primary);
       }
 
+      &.hover,
       &:hover {
         background-color: var(--color-background-quaternary);
         color: var(--color-foreground-primary);
@@ -128,6 +129,15 @@
             @extend .button-icon-small;
             stroke: var(--color-foreground-secondary);
           }
+        }
+      }
+
+      .history-entry-detail {
+        display: block;
+        padding-top: $s-16;
+
+        ul.history-entry-details-list {
+          margin: 0;
         }
       }
     }
