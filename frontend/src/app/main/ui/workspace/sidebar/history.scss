@@ -53,8 +53,8 @@
       @include flexCenter;
       background-color: var(--color-background-primary);
       border-radius: 50%;
-      height: 48px;
-      width: 48px;
+      height: $s-48;
+      width: $s-48;
       svg {
         fill: var(--color-foreground-secondary);
         height: 28px;
@@ -89,11 +89,6 @@
       cursor: pointer;
       transition: border 0.2s;
 
-      svg {
-        @extend .button-icon-small;
-        fill: var(--color-foreground-secondary);
-      }
-
       &.disabled {
         border-color: var(--color-background-quaternary);
         background-color: var(--color-background-primary);
@@ -102,9 +97,37 @@
       &:hover {
         background-color: var(--color-background-quaternary);
         color: var(--color-foreground-primary);
+        .history-entry-summary {
+          .history-entry-summary-icon {
+            svg {
+              stroke: var(--color-foreground-primary);
+            }
+          }
+          .history-entry-summary-button {
+            opacity: 1;
+          }
+        }
+      }
 
-        svg {
-          fill: var(--color-foreground-primary);
+      .history-entry-summary {
+        align-items: center;
+        display: flex;
+        .history-entry-summary-icon {
+          svg {
+            @extend .button-icon-small;
+            stroke: var(--color-foreground-secondary);
+          }
+        }
+        .history-entry-summary-text {
+          margin: 0 $s-8;
+        }
+        .history-entry-summary-button {
+          opacity: 0;
+          margin-left: auto;
+          svg {
+            @extend .button-icon-small;
+            stroke: var(--color-foreground-secondary);
+          }
         }
       }
     }
