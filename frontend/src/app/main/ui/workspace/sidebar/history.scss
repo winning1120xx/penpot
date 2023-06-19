@@ -74,7 +74,7 @@
     height: 100%;
     overflow-x: hidden;
     overflow-y: auto;
-    padding: $s-12 0;
+    padding: $s-12;
 
     .history-entry {
       border: 2px solid transparent;
@@ -92,6 +92,20 @@
       svg {
         @extend .button-icon-small;
         fill: var(--color-foreground-secondary);
+      }
+
+      &.disabled {
+        border-color: var(--color-background-quaternary);
+        background-color: var(--color-background-primary);
+      }
+
+      &:hover {
+        background-color: var(--color-background-quaternary);
+        color: var(--color-foreground-primary);
+
+        svg {
+          fill: var(--color-foreground-primary);
+        }
       }
     }
   }
