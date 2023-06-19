@@ -68,4 +68,31 @@
       color: var(--title-foreground-secondary);
     }
   }
+
+  ul.history-entries {
+    font-size: $fs-12;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: $s-12 0;
+
+    .history-entry {
+      border: 2px solid transparent;
+      border-radius: $s-8;
+      background-color: var(--color-background-tertiary);
+      justify-content: center;
+      margin: $s-4;
+      min-height: $s-32;
+      display: flex;
+      flex-direction: column;
+      padding: $s-4 $s-8;
+      cursor: pointer;
+      transition: border 0.2s;
+
+      svg {
+        @extend .button-icon-small;
+        fill: var(--color-foreground-secondary);
+      }
+    }
+  }
 }

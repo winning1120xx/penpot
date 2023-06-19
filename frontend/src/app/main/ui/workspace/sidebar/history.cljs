@@ -284,7 +284,28 @@
 
 (mf/defc history-entry [{:keys [locale entry idx-entry disabled? current?]}]
   (let [hover? (mf/use-state false)
+        new-css-system (mf/use-ctx ctx/new-css-system)
         show-detail? (mf/use-state false)]
+    (if new-css-system
+    [:div {:class (dom/classnames (css :history-entry) true)
+                                 :disabled disabled?
+                                 :current current?
+                                 :hover @hover?
+                                 :show-detail @show-detail?
+                         :on-pointer-enter #(reset! hover? true)
+                         :on-pointer-leave #(reset! hover? false)
+                         :on-click #(st/emit! (dwc/undo-to-index idx-entry))}
+     [:div.history-entry-summary
+      [:div.history-entry-summary-icon (entry->icon entry)]
+      [:div.history-entry-summary-text  (entry->message locale entry)]
+      (when (:detail entry)
+        [:div.history-entry-summary-button {:on-click #(when (:detail entry)
+                                                         (swap! show-detail? not))}
+         i/arrow-refactor])]
+
+     (when show-detail?
+       [:& history-entry-details {:entry entry}])]
+    
     [:div.history-entry {:class (dom/classnames
                                  :disabled disabled?
                                  :current current?
@@ -302,7 +323,8 @@
          i/arrow-slide])]
 
      (when show-detail?
-       [:& history-entry-details {:entry entry}])]))
+       [:& history-entry-details {:entry entry}])]
+    )))
 
 (mf/defc history-toolbox []
   (let [locale (mf/deref i18n/locale)
