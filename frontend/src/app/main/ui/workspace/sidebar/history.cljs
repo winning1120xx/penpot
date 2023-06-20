@@ -163,6 +163,23 @@
     :image i/image
     i/layers))
 
+(defn entry->icon-refactor [{:keys [type]}]
+  (case type
+    :page i/document-refactor
+    :shape i/svg-refactor
+    :rect i/rectangle-refactor
+    :circle i/elipse-refactor
+    :text i/text-refactor
+    :path i/path-refactor
+    :frame i/board-refactor
+    :group i/group-refactor
+    :color i/drop-refactor
+    :typography i/text-palette-refactor
+    :component i/component-refactor
+    :media i/img-refactor
+    :image i/img-refactor
+    i/svg-refactor))
+
 (defn is-shape? [type]
   (contains? #{:shape :rect :circle :text :path :frame :group} type))
 
@@ -315,13 +332,13 @@
      [:div {:class (dom/classnames (css :history-entry) true
                                    (css :disabled) disabled?
                                    (css :current) current?
-                                   (css :hover @hover?)
+                                   (css :hover) @hover?
                                    (css :show-detail) @show-detail?)
                    :on-pointer-enter #(reset! hover? true)
                           :on-pointer-leave #(reset! hover? false)
                           :on-click #(st/emit! (dwc/undo-to-index idx-entry))}
       [:div {:class (dom/classnames (css :history-entry-summary) true)}
-       [:div {:class (dom/classnames (css :history-entry-summary-icon) true)} (entry->icon entry)]
+       [:div {:class (dom/classnames (css :history-entry-summary-icon) true)} (entry->icon-refactor entry)]
        [:div {:class (dom/classnames (css :history-entry-summary-text) true)}  (entry->message locale entry)]
        (when (:detail entry))
        [:div {:class (dom/classnames (css :history-entry-summary-button) true) :on-click #(when (:detail entry)
